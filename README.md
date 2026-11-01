@@ -29,7 +29,7 @@ python3 ~/.claude/skills/master-slide-fmt/tools/doctor.py
 2. **Artifact へのコメント**:Claude が HTML を Artifact（claude.ai のページ）で公開します。直したい枚・図・言葉にコメントを付けると、Claude が直して公開し直し、スレッドに返信します。
    ![コメントを付けると、Claude が直して公開し直す](docs/images/usage_comment.png)
 3. **PDF・PPTX のダウンロード**:仕上がったら、Artifact の右上の「PDF でエクスポート」「パワポでエクスポート」から保存します。保存の確認が出たら「ファイルを保存」を押します。資料のフォルダにも同じ PDF と PPTX ができています。
-   ![ダウンロードの確認](docs/images/usage_download.png)
+   <img src="docs/images/usage_download.png" alt="ダウンロードの確認" width="480">
 
 ### 補足
 
