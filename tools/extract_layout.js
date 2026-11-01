@@ -34,14 +34,14 @@
           if (skip && n.matches(skip)) return;
           if (n.tagName === 'IMG' && n.classList.contains('eq')) {            // LaTeX で描いた式（build.sh が埋め込む）
             const r = n.getBoundingClientRect(); const id = 'm' + si + '_' + (mathId++); n.setAttribute('data-mid', id);
-            frags.push({ math: n.dataset.tex, id, rect: rel(r), cy: r.top + r.height / 2, x: r.left, right: r.right, color: hex(getComputedStyle(n.parentElement).color), fs: parseFloat(getComputedStyle(n.parentElement).fontSize) });
+            frags.push({ math: n.dataset.tex, id, rect: rel(r), cy: r.top + r.height / 2, x: r.left, right: r.right, color: hex(getComputedStyle(n.parentElement).color), fs: parseFloat(getComputedStyle(n.parentElement).fontSize), eq: !!n.closest('.eqbody') });
             return;
           }
           if (texOf.has(n)) {
             const svg = n.querySelector('svg') || n;                       // 外枠は行の高さしか無いので，式本体（SVG）の範囲で測る
             const r = svg.getBoundingClientRect(); const cs = getComputedStyle(n);
             const id = 'm' + si + '_' + (mathId++); svg.setAttribute('data-mid', id);
-            frags.push({ math: texOf.get(n).tex, id, rect: rel(r), cy: r.top + r.height / 2, x: r.left, right: r.right, color: hex(cs.color), fs: parseFloat(getComputedStyle(n.parentElement).fontSize) });
+            frags.push({ math: texOf.get(n).tex, id, rect: rel(r), cy: r.top + r.height / 2, x: r.left, right: r.right, color: hex(cs.color), fs: parseFloat(getComputedStyle(n.parentElement).fontSize), eq: !!n.closest('.eqbody') });
             return;
           }
           n.childNodes.forEach(walk);
@@ -62,7 +62,7 @@
           if (prevRight !== null && f.x - prevRight > f.fs * 1.2) runs.push({ gap: f.x - prevRight, x: f.x - R.left, fs: f.fs, color: f.color });
           prevRight = Math.max(prevRight === null ? f.right : prevRight, f.right);
           const last = runs[runs.length - 1];
-          if (f.math !== undefined) runs.push({ math: f.math, id: f.id, rect: f.rect, color: f.color, fs: f.fs });
+          if (f.math !== undefined) runs.push({ math: f.math, id: f.id, rect: f.rect, color: f.color, fs: f.fs, eq: f.eq });
           else if (last && last.t !== undefined && last.color === f.color && last.bold === f.bold && last.italic === f.italic && last.script === f.script && last.fs === f.fs) last.t += f.t;
           else runs.push({ t: f.t, color: f.color, bold: f.bold, italic: f.italic, script: f.script, fs: f.fs });
         }

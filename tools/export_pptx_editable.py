@@ -116,19 +116,25 @@ def textbox(ctx, x, y, w, h, wrap=True, anchor='t'):
     for p in body.findall(A('p')): body.remove(p)
     return body
 
-def office_math(ctx, om, pic, r, size, color, tex):
+def office_math(ctx, om, pic, r, size, color, tex, left=False):
     """パワポの数式を置く．PowerPoint が自分で数式を保存するときと同じく，数式の箱を mc:AlternateContent で包み，
-    代わりの表示（Fallback）に式の画像を入れる（数式を描けないアプリでは画像が出る）"""
-    pad = r['w'] * 0.5                                              # 書体の違いで幅が変わっても，測った中心にそろう
-    tb = ctx.slide.shapes.add_textbox(Emu(int((r['x'] - pad) * PX)), Emu(int(r['y'] * PX)), Emu(int((r['w'] + 2 * pad) * PX)), Emu(int(r['h'] * PX)))
+    代わりの表示（Fallback）に式の画像を入れる（数式を描けないアプリでは画像が出る）．
+    PowerPoint の数式は LaTeX の絵より幅が広くなることがある．番号つきの式（left）は測った左端にそろえ，広がる分は右（番号との間）へ逃がす．
+    文中の式は測った中心にそろえる"""
+    pad = r['w'] * 0.5
+    x0, w = (r['x'], r['w'] + 2 * pad) if left else (r['x'] - pad, r['w'] + 2 * pad)
+    tb = ctx.slide.shapes.add_textbox(Emu(int(x0 * PX)), Emu(int(r['y'] * PX)), Emu(int(w * PX)), Emu(int(r['h'] * PX)))
     body = tb.text_frame._txBody; bp = body.find(A('bodyPr'))
     for k in ('lIns', 'tIns', 'rIns', 'bIns'): bp.set(k, '0')
     bp.set('wrap', 'none'); bp.set('anchor', 'ctr')
     for c in list(bp): bp.remove(c)
     etree.SubElement(bp, A('noAutofit'))
     for p in body.findall(A('p')): body.remove(p)
-    p = etree.SubElement(body, A('p')); etree.SubElement(p, A('pPr')).set('algn', 'ctr')
-    etree.SubElement(p, '{%s}m' % NS_A14, nsmap={'a14': NS_A14}).append(omml.for_pptx(om, size, color, ea=F['ea']))
+    p = etree.SubElement(body, A('p')); ppr = etree.SubElement(p, A('pPr')); ppr.set('algn', 'l' if left else 'ctr'); ppr.set('marL', '0'); ppr.set('indent', '0')
+    etree.SubElement(ppr, A('buNone'))                              # マスターの既定の文字に記号があっても付けない（付くと式が文中扱いになる）
+    om = omml.for_pptx(om, size, color, ea=F['ea'])
+    if left: om = omml.para(om, 'left')                             # 式だけの段落は PowerPoint が中央にそろえるので，式の側で左を指定する
+    etree.SubElement(p, '{%s}m' % NS_A14, nsmap={'a14': NS_A14}).append(om)
     sp = tb._element; tree = sp.getparent(); i = tree.index(sp)
     for el in (sp, pic._element):                                   # 代替テキストは LaTeX のまま（読み上げ・アクセシビリティの確認用）
         el.find('.//' + qn('p:cNvPr')).set('descr', tex)
@@ -155,7 +161,7 @@ def place_math(ctx):
         pic = ctx.slide.shapes.add_picture(io.BytesIO(png), Emu(int(r['x'] * PX)), Emu(int(r['y'] * PX)), Emu(int(r['w'] * PX)), Emu(int(r['h'] * PX)))
         if OFFICE:
             try:
-                office_math(ctx, omml.to_omml(tex), pic, r, size, run['color'], tex)
+                office_math(ctx, omml.to_omml(tex), pic, r, size, run['color'], tex, left=run.get('eq', False))
                 ctx.stats['office'] += 1; ctx.stats['custom'] += size not in tiers
                 continue
             except Exception as e: why = str(e).splitlines()[0]

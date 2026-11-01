@@ -43,8 +43,32 @@ def to_omml(tex):
         if om is None: raise RuntimeError('pandoc が数式を作らなかった')
         for e in [e for e in om.iter() if isinstance(e.tag, str) and e.tag.startswith('{%s}' % W)]:
             e.getparent().remove(e)                  # Word の書式（w:rPr）は外す
+        braces(om)
+        for t in om.iter('{%s}t' % M):               # 前後の空白を残す
+            if t.text and t.text != t.text.strip(): t.set('{http://www.w3.org/XML/1998/namespace}space', 'preserve')
         _cache[key] = om
     return copy.deepcopy(_cache[key])
+
+def braces(om):
+    """pandoc は \\underbrace・\\overbrace を「下（上）に ⏟ の文字を置く」形にする．PowerPoint ではその文字が伸びず小さく出るので，
+    伸びる括弧（m:groupChr）に置き換える"""
+    q = lambda t: '{%s}%s' % (M, t)
+    for ll in list(om.iter(q('limLow'), q('limUpp'))):
+        lim = ll.find(q('lim')); runs = lim.findall(q('r')) if lim is not None else []
+        ch = runs[0].findtext(q('t')) if len(runs) == 1 and len(lim) == 1 else None
+        if ch not in ('⏟', '⏞'): continue
+        g = etree.Element(q('groupChr')); pr = etree.SubElement(g, q('groupChrPr'))
+        etree.SubElement(pr, q('chr')).set(q('val'), ch)
+        etree.SubElement(pr, q('pos')).set(q('val'), 'bot' if ch == '⏟' else 'top')
+        etree.SubElement(pr, q('vertJc')).set(q('val'), 'top' if ch == '⏟' else 'bot')
+        g.append(ll.find(q('e')))
+        ll.addprevious(g); ll.getparent().remove(ll)
+
+def para(om, jc):
+    """式を <m:oMathPara> で包み，そろえ方（left / center / right）を付ける"""
+    mp = etree.Element('{%s}oMathPara' % M); pr = etree.SubElement(mp, '{%s}oMathParaPr' % M)
+    etree.SubElement(pr, '{%s}jc' % M).set('{%s}val' % M, jc); mp.append(om)
+    return mp
 
 def for_pptx(om, pt, color='000000', latin=MATH_FONT, ea=None):
     """パワポの数式の文字は <m:r> の中に a:rPr を持つ（m:rPr の後，m:t の前）．立体（m:sty p）以外は斜体"""
