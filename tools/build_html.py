@@ -68,7 +68,7 @@ def structure(s, th, name):
             head, th['deco']['content'], h2s, body, '\n'.join(refs), foot(), tail)
     s = SECTION.sub(one, s)
     if 'id="export"' not in s:                            # 書き出しボタン（同じフォルダの <名前>.pdf / .pptx．build が作る）
-        btn = '<div id="export"><a href="%s.pdf" download>PDF でエクスポート</a><a href="%s.pptx" download>パワポでエクスポート</a></div>\n' % (name, name)
+        btn = '<div id="export"><a href="%s.pdf" data-kind="pdf" download>PDF でエクスポート</a><a href="%s.pptx" data-kind="pptx" download>パワポでエクスポート</a></div>\n' % (name, name)
         s = s.replace('<main>', btn + '<main>', 1)
     return s
 

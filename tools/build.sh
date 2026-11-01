@@ -3,6 +3,7 @@
 #   <名前>.html … 体裁・飾り・図・式を埋め込んだ 1 ファイル（プレビューと公開に使う）
 #   <名前>.pdf  … 1 枚 1 ページ（大きさはマスターと同じ）．全部の枚を並べた画像を .build/<名前>.sheet.png に置く
 #   <名前>.pptx … 全部編集できるパワポ（プロファイルのマスターの上）．作れなかったときだけ，中身が画像のパワポにする
+#   .build/<名前>.artifact.html … Artifact で公開する版（PDF・パワポを埋め込み，書き出しボタンで渡せる）
 # 使い方: build.sh <資料のフォルダ> [--html-only]
 set -e
 TOOLS="$(cd "$(dirname "$0")" && pwd)"
@@ -25,5 +26,6 @@ for src in "$DECK"/*.src.html; do
     LAYOUT="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["theme"]["layout"])' "$DECK/.build/resolved.json")"
     uv run --quiet --with python-pptx --with pymupdf python "$TOOLS/export_pptx.py" "$DECK/$name.pdf" "$DECK/$name.pptx" "$MASTER" "$LAYOUT"
   fi
+  python3 "$TOOLS/artifact_html.py" "$DECK" "$name"            # Artifact で公開する版（PDF・パワポを埋め込む）
 done
 [ "$found" = 1 ] || { echo "$DECK に *.src.html が無い" >&2; exit 1; }
