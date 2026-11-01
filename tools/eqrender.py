@@ -1,6 +1,6 @@
 """
 文字で組めない式（分数，Σ，ハットなど）を LaTeX で描く．
-HTML には SVG の画像として埋め込む．パワポの式の画像は，この絵をブラウザで撮ったもの（HTML とパワポで同じ見え方になる）．
+HTML には SVG の画像として埋め込む．パワポの式の画像（PowerPoint の数式の代わりの表示）は，この絵をブラウザで撮ったもの（HTML とパワポで同じ見え方になる）．
 
   書体は設定の math.font: "sans"（Helvetica．Arial に近い．ギリシャ文字だけ TeX の書体） / "serif"（Computer Modern）
   math.preamble に書いた行（\\definecolor など）はプリアンブルに足す

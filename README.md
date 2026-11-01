@@ -3,7 +3,7 @@
 自分のパワポのマスター（.pptx）を渡すと、その体裁でスライドを作る Claude Code のスキル。
 
 - スライドは縦スクロールの HTML で 1 枚ずつ書く（`*.src.html`。式は `$…$` の LaTeX）
-- `./build.sh` で、図と体裁を埋め込んだ HTML、PDF、**全部編集できるパワポ**（渡したマスターの上。文はテキスト、表は表、式はテキストか画像）を作る
+- `./build.sh` で、図と体裁を埋め込んだ HTML、PDF、**全部編集できるパワポ**（渡したマスターの上。文はテキスト、表は表、式はテキストかパワポの数式）を作る
 - マスターから、スライドの大きさ（4:3 / 16:9）、タイトルの位置・大きさ・色、本文の書体と段、飾り（線・帯・画像）、背景、脚注を読み取る
 - 研究室・サークル・会社など、使う形を **プロファイル** で切り替える。作業しているディレクトリから、どれを使うかを選ぶ
 - Claude では、HTML を Artifact（claude.ai のページ）で公開し、ページに付いたコメントを読んで直し、公開し直す流れで仕上げる
@@ -18,7 +18,7 @@
 
 ### PDF とパワポ
 
-PDF は 1 枚 1 ページ。パワポは渡したマスターの上に置き直してあり、文・表・式を編集できる（下の画像は LibreOffice で表示したもの。PowerPoint では日本語の字間が少し違う）。
+PDF は 1 枚 1 ページ。パワポは渡したマスターの上に置き直してあり、文・表・式を編集できる。分数や Σ の上下のある式は、PowerPoint の数式（クリックして数式として直せるもの）になる（下の画像は LibreOffice で表示したもの。LibreOffice は PowerPoint の数式を描けないので、一緒に入れてある式の画像が出る。PowerPoint では日本語の字間も少し違う）。
 
 | PDF | パワポ |
 |---|---|
@@ -97,7 +97,8 @@ python3 ~/.claude/skills/master-slide-fmt/tools/doctor.py
 |---|---|
 | [uv](https://docs.astral.sh/uv/) | 動かない（必須） |
 | Google Chrome / Chromium | HTML だけ作る |
-| LaTeX（latex・dvisvgm） | 式は MathJax で表示し、パワポでは画像 |
+| LaTeX（latex・dvisvgm） | HTML の式は MathJax で表示する |
+| [pandoc](https://pandoc.org/) | パワポの式は画像（PowerPoint の数式にならない） |
 | LibreOffice か PowerPoint | パワポの確認用の画像が作れない |
 
 ## 作業の流れ

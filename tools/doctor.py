@@ -32,7 +32,8 @@ def table():
     rows = [
         ('uv', shutil.which('uv'), '必須（無いと何も作れない）', 'https://docs.astral.sh/uv/'),
         ('Google Chrome / Chromium', chrome(), 'PDF とパワポ（無いと HTML だけ）', 'Chrome を入れるか，設定の "chrome" に場所を書く'),
-        ('LaTeX（latex，dvisvgm）', shutil.which('latex') and shutil.which('dvisvgm'), '文字で組めない式の絵（無いと MathJax で表示し，パワポでは画像）', 'TeX Live / MacTeX'),
+        ('LaTeX（latex，dvisvgm）', shutil.which('latex') and shutil.which('dvisvgm'), '文字で組めない式の絵（無いと HTML では MathJax で表示）', 'TeX Live / MacTeX'),
+        ('pandoc', shutil.which('pandoc'), 'パワポの式を PowerPoint の数式にする（無いと画像）', 'https://pandoc.org/'),
         ('xelatex，pdftocairo', shutil.which('xelatex') and shutil.which('pdftocairo'), '日本語を含む式の絵', 'TeX Live / poppler'),
         ('Microsoft PowerPoint（Mac）', Path('/Applications/Microsoft PowerPoint.app').exists() or None, '確認用: PowerPoint に PDF を書き出させる（ppt2pdf.scpt）', '無くても作れる'),
     ]

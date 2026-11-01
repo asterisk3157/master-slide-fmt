@@ -30,7 +30,7 @@ DEFAULTS = {
     "colors": {"text": "auto", "good": "0070C0", "bad": "FF0000", "table_head": "D9D9D9", "table_border": "000000",
                "box_border": "000000", "page_bg": "2F3B52"},
     "footer": {"text": "auto", "date": "field", "date_format": "en-long", "number": True},
-    "math": {"font": "sans", "preamble": "", "plugin": ""},
+    "math": {"font": "sans", "preamble": "", "pptx": "office", "plugin": ""},
     "chrome": "",
     "style_guide": None,
 }

@@ -6,7 +6,9 @@
   文                           … 編集できるテキスト（設定の書体）．色・箇条書きの記号・改行位置は HTML と同じ
   表                           … パワポの表
   式                           … テキストで書けるものは斜体・上付き・下付きのテキスト（build が HTML の段階で変える）
-                                 文字で組めない式は画像（設定の math.plugin に式のプラグインを書けば，それが置く）
+                                 文字で組めない式はパワポの数式（Office の数式．pandoc で変換）．代わりの表示として画像も入れる
+                                 （PowerPoint では数式，LibreOffice などでは画像が出る）．変換できない式・pandoc が無いときは画像だけ
+                                 設定の math.plugin に式のプラグインを書けば，それが先に置く
   図                           … 画像
 
 位置と改行は，ブラウザ（Chrome）で測った HTML のレイアウトをそのまま写す．
@@ -23,11 +25,13 @@ from pptx.dml.color import RGBColor
 from pptx.oxml.ns import qn
 from playwright.sync_api import sync_playwright
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE)); import eqrender, theme_css
+sys.path.insert(0, str(HERE)); import eqrender, omml, theme_css
 
 PX = 9525                                    # 1px（96 px/inch）
 NS_A = 'http://schemas.openxmlformats.org/drawingml/2006/main'
 NS_P = 'http://schemas.openxmlformats.org/presentationml/2006/main'
+NS_A14 = 'http://schemas.microsoft.com/office/drawing/2010/main'
+NS_MC = 'http://schemas.openxmlformats.org/markup-compatibility/2006'
 def A(tag): return '{%s}%s' % (NS_A, tag)
 F = {'latin': 'Arial', 'ea': 'Arial'}        # 書体（main で設定から入れる）
 DATE_FIELD = {'en-long': ('datetime4', 'en-US'), 'ymd': ('datetime1', 'ja-JP'), 'iso': (None, None)}
@@ -112,22 +116,51 @@ def textbox(ctx, x, y, w, h, wrap=True, anchor='t'):
     for p in body.findall(A('p')): body.remove(p)
     return body
 
+def office_math(ctx, om, pic, r, size, color, tex):
+    """パワポの数式を置く．PowerPoint が自分で数式を保存するときと同じく，数式の箱を mc:AlternateContent で包み，
+    代わりの表示（Fallback）に式の画像を入れる（数式を描けないアプリでは画像が出る）"""
+    pad = r['w'] * 0.5                                              # 書体の違いで幅が変わっても，測った中心にそろう
+    tb = ctx.slide.shapes.add_textbox(Emu(int((r['x'] - pad) * PX)), Emu(int(r['y'] * PX)), Emu(int((r['w'] + 2 * pad) * PX)), Emu(int(r['h'] * PX)))
+    body = tb.text_frame._txBody; bp = body.find(A('bodyPr'))
+    for k in ('lIns', 'tIns', 'rIns', 'bIns'): bp.set(k, '0')
+    bp.set('wrap', 'none'); bp.set('anchor', 'ctr')
+    for c in list(bp): bp.remove(c)
+    etree.SubElement(bp, A('noAutofit'))
+    for p in body.findall(A('p')): body.remove(p)
+    p = etree.SubElement(body, A('p')); etree.SubElement(p, A('pPr')).set('algn', 'ctr')
+    etree.SubElement(p, '{%s}m' % NS_A14, nsmap={'a14': NS_A14}).append(omml.for_pptx(om, size, color, ea=F['ea']))
+    sp = tb._element; tree = sp.getparent(); i = tree.index(sp)
+    for el in (sp, pic._element):                                   # 代替テキストは LaTeX のまま（読み上げ・アクセシビリティの確認用）
+        el.find('.//' + qn('p:cNvPr')).set('descr', tex)
+    ac = etree.Element('{%s}AlternateContent' % NS_MC, nsmap={'mc': NS_MC})
+    etree.SubElement(ac, '{%s}Choice' % NS_MC, Requires='a14', nsmap={'a14': NS_A14}).append(sp)
+    etree.SubElement(ac, '{%s}Fallback' % NS_MC).append(pic._element)
+    tree.insert(i, ac)
+
 def place_math(ctx):
-    """文の上に重ねる式を置く（プラグインがあればそれが置く．無い・置けなかったときは画像）"""
+    """文の上に重ねる式を置く．順に，プラグイン → パワポの数式（代わりに画像つき）→ 画像"""
     tiers = sorted({round(v, 2) for v in ctx.R['sizes'].values()})
     for run, pt in ctx.pending:
         r = run['rect']; tex = run['math']
-        color = None if run['color'] == '000000' else tuple(int(run['color'][i:i + 2], 16) for i in (0, 2, 4))
-        try:
-            if PLUGIN is None: raise RuntimeError(PLUGIN_WHY)
-            size = min(tiers, key=lambda v: abs(v - pt)); size = size if abs(size - pt) < 0.7 else round(pt * 2) / 2
-            if size not in tiers: ctx.stats['custom'] += 1
-            PLUGIN.add(ctx.slide, tex, size, color, tuple(int(r[k] * PX) for k in ('x', 'y', 'w', 'h')))
-            ctx.stats['plugin'] += 1
-        except Exception as e:                                     # プラグインが無い・置けなかった → 画像
-            png = ctx.page.locator('[data-mid="%s"]' % run['id']).screenshot()
-            ctx.slide.shapes.add_picture(io.BytesIO(png), Emu(int(r['x'] * PX)), Emu(int(r['y'] * PX)), Emu(int(r['w'] * PX)), Emu(int(r['h'] * PX)))
-            ctx.stats['image'].append((ctx.stats['slide'], str(e).splitlines()[0][:60], tex[:70]))
+        size = min(tiers, key=lambda v: abs(v - pt)); size = size if abs(size - pt) < 0.7 else round(pt * 2) / 2
+        why = PLUGIN_WHY
+        if PLUGIN is not None:
+            try:
+                color = None if run['color'] == '000000' else tuple(int(run['color'][i:i + 2], 16) for i in (0, 2, 4))
+                PLUGIN.add(ctx.slide, tex, size, color, tuple(int(r[k] * PX) for k in ('x', 'y', 'w', 'h')))
+                ctx.stats['plugin'] += 1; ctx.stats['custom'] += size not in tiers
+                continue
+            except Exception as e: why = 'プラグイン: ' + str(e).splitlines()[0]
+        png = ctx.page.locator('[data-mid="%s"]' % run['id']).screenshot()
+        pic = ctx.slide.shapes.add_picture(io.BytesIO(png), Emu(int(r['x'] * PX)), Emu(int(r['y'] * PX)), Emu(int(r['w'] * PX)), Emu(int(r['h'] * PX)))
+        if OFFICE:
+            try:
+                office_math(ctx, omml.to_omml(tex), pic, r, size, run['color'], tex)
+                ctx.stats['office'] += 1; ctx.stats['custom'] += size not in tiers
+                continue
+            except Exception as e: why = str(e).splitlines()[0]
+        else: why = OFFICE_WHY
+        ctx.stats['image'].append((ctx.stats['slide'], why[:60], tex[:70]))
     ctx.pending = []
 
 
@@ -249,6 +282,7 @@ def keep_placeholders(slide, types):
 
 # ------------------------------------------------------------------ 本体
 PLUGIN, PLUGIN_WHY = None, 'math.plugin が無い'
+OFFICE, OFFICE_WHY = False, ''
 
 def load_plugin(path):
     """式のプラグイン（.py）を読む．add(slide, tex, size_pt, color, (x, y, w, h) の EMU) で式を置き，置けなければ例外を出す．
@@ -260,7 +294,7 @@ def load_plugin(path):
     return mod
 
 def main():
-    global PLUGIN, PLUGIN_WHY
+    global PLUGIN, PLUGIN_WHY, OFFICE, OFFICE_WHY
     deck, html, out = Path(sys.argv[1]).resolve(), sys.argv[2], sys.argv[3]
     res = json.loads((deck / '.build' / 'resolved.json').read_text(encoding='utf-8'))
     cfg, R = res['config'], res['theme']
@@ -269,6 +303,9 @@ def main():
     if cfg['math'].get('plugin'):
         try: PLUGIN = load_plugin(cfg['math']['plugin'])
         except Exception as e: PLUGIN_WHY = f'math.plugin を読めない: {str(e).splitlines()[0][:60]}'
+    if cfg['math'].get('pptx', 'office') != 'office': OFFICE_WHY = 'math.pptx が image'
+    elif not omml.available(): OFFICE_WHY = 'pandoc が無い'
+    else: OFFICE = True
 
     prs = Presentation(cfg['master'])
     for s in list(prs.slides._sldIdLst):                     # マスターのファイルに入っているスライドは外す
@@ -277,7 +314,7 @@ def main():
     cover_layout = next((l for l in prs.slide_layouts if l.name == R['cover_layout']), None) if R['cover_layout'] else None
     d = datetime.date.today()
     today = {'ymd': f'{d.year}/{d.month}/{d.day}', 'iso': d.isoformat()}.get(R['footer'].get('date_format'), f'{d:%B} {d.day}, {d.year}')
-    stats = {'plugin': 0, 'image': [], 'slide': 0, 'custom': 0, 'sizes': set(), 'over': []}
+    stats = {'plugin': 0, 'office': 0, 'image': [], 'slide': 0, 'custom': 0, 'sizes': set(), 'over': []}
     with sync_playwright() as pw:
         try: br = pw.chromium.launch(channel='chrome', headless=True)
         except Exception: br = pw.chromium.launch(headless=True)       # Chrome が無ければ Playwright の Chromium
@@ -306,7 +343,7 @@ def main():
             add_footer(slide, R, R['layout'], today)
         br.close()
     prs.save(out)
-    print(f"{Path(out).name}: {len(data)} 枚 / 式の画像 {len(stats['image'])}" + (f"，プラグインで置いた式 {stats['plugin']}" if PLUGIN else ''))
+    print(f"{Path(out).name}: {len(data)} 枚 / パワポの数式 {stats['office']}，式の画像 {len(stats['image'])}" + (f"，プラグインで置いた式 {stats['plugin']}" if PLUGIN else ''))
     for s, why, tex in stats['image'][:20]:
         print(f'  画像にした式: {s} 枚目  [{why}]  {tex}')
     for s, o in stats['over']:

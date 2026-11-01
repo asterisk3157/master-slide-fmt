@@ -8,7 +8,7 @@ description: 自分のパワポのマスター（.pptx）から体裁を読み�
 パワポのマスターを 1 つ渡すと，その体裁（大きさ 4:3 / 16:9，タイトルの位置・大きさ・色，本文の書体と段，飾りの線や帯や画像，脚注）で HTML を組み，同じ見た目の PDF と，全部編集できるパワポを作る。
 
 - 正本は `*.src.html`（スライド 1 枚 = `<section class="slide">`）。体裁の CSS は書かない。build のたびに，マスターと設定から作って埋め込む
-- パワポは，ブラウザで測った位置のとおりに，マスターの上へ置き直す（文はテキスト，表は表，式はテキストか画像，図は画像）
+- パワポは，ブラウザで測った位置のとおりに，マスターの上へ置き直す（文はテキスト，表は表，式はテキストか PowerPoint の数式，図は画像）
 - 使う形（マスター + 設定 + 言い回しの決まり）は **プロファイル** にまとめ，作業しているディレクトリから選ぶ
 
 道具はすべて `tools/` にある。以下 `$S` はこのスキルのフォルダ（例: `~/.claude/skills/master-slide-fmt`）。
@@ -61,7 +61,7 @@ cd <資料のフォルダ> && ./build.sh            # HTML・PDF・パワポ（-
 | `.row` > `.col` + `.figcap` / `.two` | 図を横に並べる / 2 段組み | 画像とテキスト |
 | `<p class="refs">` | 出典（脚注の帯のすぐ上に固定） | テキスト |
 | `<span class="good">` / `<span class="bad">` | 良い面（既定は青）/ 悪い面・注意（既定は赤）。意味のまとまりごとに付ける | 文字の色 |
-| `$…$` | 式（LaTeX）。文字で書けるもの（記号・添字・ギリシャ文字）はテキスト，分数・Σ の上下・根号・行列・ハットなどは絵 | テキスト / 画像 |
+| `$…$` | 式（LaTeX）。文字で書けるもの（記号・添字・ギリシャ文字）はテキスト，分数・Σ の上下・根号・行列・ハットなどは絵 | テキスト / PowerPoint の数式（代わりの表示として画像も入れる。変換できない式は画像だけ） |
 
 - 脚注（日付・名前・ページ番号）と飾りは書かない。マスターと設定から入る
 - build は，各スライドを「飾り → 見出し → 本文の領域（`.inner`）→ 出典 → 脚注」の形に組んで HTML に書き込む。スクリプトが動かない表示（ブラウザのペインの静止画など）でも崩れない。スクリプトがするのは，開いた日の日付・画面の幅に合わせた縮小・はみ出したときの図の縮小だけ
@@ -114,7 +114,7 @@ cd <資料のフォルダ> && ./build.sh            # HTML・PDF・パワポ（-
 | `bullets.lead` / `.body` / `.sub` | auto（マスターの記号） | 箇条書きの記号（例: ◆ – •）。`""` で記号なし |
 | `colors.text` / `.good` / `.bad` / `.table_head` / `.table_border` / `.box_border` / `.page_bg` | auto / 0070C0 / FF0000 / D9D9D9 / 000000 / 000000 / 2F3B52 | 文字・強調・表・枠・ページの背景（スライドの外）の色 |
 | `footer.text` / `.date` / `.date_format` / `.number` | auto（マスターのフッターの文字）/ field / en-long / true | 脚注の名前，日付（field = 開いた日に変わる / fixed / none），書式（en-long = October 3, 2026 / ymd = 2026/10/3 / iso），ページ番号 |
-| `math.font` / `.preamble` / `.plugin` | sans / "" / "" | 式の書体（sans = Arial 風 / serif），LaTeX のプリアンブルに足す行，パワポで絵の式を置く Python のファイル（プロファイルのフォルダからの相対でよい。`add(slide, tex, size_pt, color, (x, y, w, h))` で置き，置けなければ例外。無ければ画像） |
+| `math.font` / `.preamble` / `.pptx` / `.plugin` | sans / "" / office / "" | 式の書体（sans = Arial 風 / serif），LaTeX のプリアンブルに足す行，パワポの絵の式（office = PowerPoint の数式。pandoc で変換 / image = 画像），パワポで絵の式を置く Python のファイル（プロファイルのフォルダからの相対でよい。`add(slide, tex, size_pt, color, (x, y, w, h))` で置き，置けなければ例外。無ければ画像） |
 | `chrome` | 自動で探す | Chrome / Chromium の場所 |
 
 プロファイル（`profile.json`）にだけ書く項目: `name`，`description`（Claude が選ぶときに読む），`match.paths`（当てはまるディレクトリ。`~/research/**` の形）と `match.hints`（話題の語），`master`，`style_guide`，`new_deck.cover_title` / `cover_sub`（ひな形の表紙。`{date}` は今日），`private_words`（公開前チェックで探す語）。
@@ -154,7 +154,8 @@ python3 $S/tools/profile.py show my-lab
 |---|---|
 | uv | 何も作れない（止まって入れ方を出す） |
 | Google Chrome / Chromium | HTML だけ作る（PDF・パワポは作らない） |
-| LaTeX（latex・dvisvgm。日本語を含む式は xelatex・pdftocairo） | 式は MathJax で表示し，パワポでは画像 |
+| LaTeX（latex・dvisvgm。日本語を含む式は xelatex・pdftocairo） | HTML の式は MathJax で表示する（パワポの代わりの画像も MathJax の見た目） |
+| pandoc | パワポの式は画像だけ（PowerPoint の数式にならない） |
 | LibreOffice / PowerPoint | パワポの確認の画像が作れない（作ること自体はできる） |
 
 `python3 $S/tools/doctor.py` で，何があって何が外れるかを表で出す。
@@ -169,6 +170,9 @@ python3 $S/tools/profile.py show my-lab
 - matplotlib で日本語と `$数式$` が同じ文字列に混ざると，書体の切り替えが効かず □ になることがある。その文字列には `fontfamily` で和文の書体を直接指定する
 - 折り返しは文節ごと（`word-break: auto-phrase`）。それでも 1 語だけ次の行に落ちる所は，文を短くするか `<br>` を入れる。表のセルは折り返さない（必要な所だけ `<br>`）
 - パワポの改行は HTML と同じ位置に入れてある。パワポ上で文を大きく書き換えたら，改行を入れ直す
+- PowerPoint の数式は Cambria Math で組まれるので，HTML（LaTeX の絵）と字の形と幅が少し違う。測った位置の中心にそろえて置いてある
+- LibreOffice・Keynote・Google スライドは PowerPoint の数式を描けず，一緒に入れた画像が出る。数式の見た目は PowerPoint で開いて確かめる（LibreOffice の確認用の画像では分からない）
+- pandoc が読めない書き方の式は画像だけになり，build の「画像にした式」に理由が出る（`{\rm H}`，`\arg\min` は自動で書き換える）
 - 箇条書きの記号の幅 = 字下げ（パワポのぶら下げインデントと同じ並び）。この CSS を変えると，パワポで文と式の位置がずれる
 - 結合したセルのある表はパワポに書き出せない（その資料は画像の版になる）
 - 日本語の書体は，マスターの書体（例: ＭＳ ゴシック）が Mac に無いと，HTML・PDF では `fonts.fallback`（ヒラギノなど）で出る。パワポはマスターの書体のまま
