@@ -37,6 +37,19 @@
       if (over > 0.5) { sl.setAttribute('data-over', Math.round(over)); inner.style.transform = 'scale(' + (avail / used()).toFixed(3) + ')'; }
     });
   }
+  // 書き出しボタン．Artifact（claude.ai のページ）の中では，ふつうのリンクでは保存できない．
+  // downloads の機能で，公開用の HTML に埋め込んだ PDF・パワポを渡す（artifact_html.py が埋め込む）
+  document.querySelectorAll('#export a[data-kind]').forEach(a => a.addEventListener('click', async ev => {
+    if (!(window.claude && window.claude.use)) return;             // ふつうのブラウザ: リンクのまま
+    ev.preventDefault();
+    const dl = await window.claude.use('downloads');
+    const src = document.getElementById('msf-file-' + a.dataset.kind);
+    if (!dl || !src) { a.style.opacity = 0.4; return; }
+    const bin = Uint8Array.from(atob(src.textContent.trim()), c => c.charCodeAt(0));
+    try { await dl.save({ filename: a.getAttribute('href'), data: new Blob([bin]) }); }
+    catch (e) { if (!e || e.code !== 'declined') a.style.opacity = 0.4; }   // 断られたときは何もしない
+  }));
+
   window.addEventListener('load', () => { fitSlides(); setTimeout(fitSlides, 1500); setTimeout(fitSlides, 4000); });
   window.addEventListener('resize', fitSlides);
   fitSlides();
