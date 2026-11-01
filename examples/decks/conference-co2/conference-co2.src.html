@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小型センサの値から室内の CO2 濃度を推定する手法</title>
+<style>
+  /* この資料だけの調整 */
+</style>
+</head>
+<body>
+<header>
+  <h1>小型センサの値から室内の CO2 濃度を推定する手法</h1>
+  <p>学会発表の見本（conference-16x9 の形）。テーマ・数値・文献はすべて架空</p>
+</header>
+<main>
+
+<section class="slide cover">
+  <div class="cover-title">小型センサの値から<br>室内の CO2 濃度を推定する手法</div>
+  <div class="cover-sub">Example Conference 2026<br>Taro Example, Hanako Sample（Example University）</div>
+</section>
+
+<section class="slide">
+  <h2>背景と目的</h2>
+  <p class="lead">安価なセンサでも，換気の判断に使える精度で CO2 濃度を知りたい</p>
+  <ul class="body">
+    <li>高い精度の CO2 計は，1 台数万円と高価 [1]</li>
+    <li>温度・湿度・人数は，安価なセンサで測れる [2]</li>
+    <li>目的：これらの値から，誤差 50 ppm 以下で濃度を推定する</li>
+  </ul>
+  <p class="refs">[1] A. Author, Example Journal of Buildings, vol. 3, 2024.　[2] B. Author, Example Sensors Letters, 2025.</p>
+</section>
+
+<section class="slide">
+  <h2>提案法</h2>
+  <p class="lead">直前の濃度と入力から，次の時刻の濃度を予測する</p>
+  <div class="box eqn"><span class="eqbody">$\displaystyle \hat{c}_{t+1} = c_t + \frac{\Delta t}{V} \left( g\, n_t - q_t \left( c_t - c_{\rm out} \right) \right)$</span><span class="eqno">(1)</span></div>
+  <table class="sym">
+    <tr><td>$c_t$</td><td>時刻 $t$ の濃度</td><td>$V$</td><td>部屋の体積</td><td>$n_t$</td><td>部屋にいる人数</td></tr>
+    <tr><td>$q_t$</td><td>換気量（温度・湿度から推定）</td><td>$g$</td><td>1 人あたりの発生量</td><td>$c_{\rm out}$</td><td>外気の濃度</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>推定結果</h2>
+  <p class="lead"><span class="good">平均の誤差は 38 ppm で，目標の 50 ppm を下回った</span></p>
+  <div class="row">
+    <div class="col"><img class="graph" src="figs/co2_scatter.png" alt="推定値と実測値"><p class="figcap">図 1　推定値と実測値（3 部屋・14 日）</p></div>
+    <div class="col"><img class="graph" src="figs/co2_time.png" alt="1 日の濃度の変化"><p class="figcap">図 2　1 日の濃度の変化（部屋 A）</p></div>
+  </div>
+  <p class="cap small">データはすべて架空</p>
+</section>
+
+<section class="slide">
+  <h2>まとめと今後</h2>
+  <p class="lead">安価なセンサの値から，平均 38 ppm の誤差で濃度を推定できた</p>
+  <ul class="body">
+    <li>式 (1) の換気量を，温度・湿度の変化から推定した</li>
+    <li><span class="bad">窓を開けた直後は，換気量の変化に追いつかず誤差が大きい</span></li>
+    <li>今後：広さの違う部屋と，季節を変えての検証</li>
+  </ul>
+</section>
+
+</main>
+<footer>見本（master-slide-fmt）．テーマ・数値・文献はすべて架空</footer>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">トップへ戻る</button>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "notice-4x3",
+  "description": "見本: 町内会・地域のお知らせ、掲示物（4:3）。上に緑の帯（見出しは白・中央）、下に薄い緑の帯、表紙は緑の角丸の枠。文字は大きめ（28/24/20 pt）、記号は ◎ ・ –",
+  "match": { "paths": [], "hints": ["お知らせ", "町内会", "地域", "掲示", "回覧", "説明会のご案内"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（お知らせの題）", "cover_sub": "{date}<br>（会の名前）" },
+  "config": {
+    "fonts": { "latin": "auto", "ea": "auto" },
+    "sizes_pt": { "lead": 28, "body": 24, "sub": 20, "small": 14, "strict": true },
+    "bullets": { "lead": "◎", "body": "・", "sub": "–" },
+    "colors": { "good": "2E7D32", "bad": "C62828", "table_head": "E8F5E9", "table_border": "66BB6A", "box_border": "2E7D32", "page_bg": "33402F" },
+    "footer": { "text": "auto", "date": "none", "number": true },
+    "math": { "font": "sans" }
+  },
+  "private_words": []
+}

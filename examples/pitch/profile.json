@@ -1,0 +1,16 @@
+{
+  "name": "pitch",
+  "description": "見本: 製品・サービスの紹介、ピッチ、営業資料（16:9）。白地に大きな見出し、上端に細い紫の線、ページ番号は紫の丸の中。表紙は紫の背景に大きな円。文字は 26/22/18 pt、記号は ✓ ・ –",
+  "match": { "paths": [], "hints": ["ピッチ", "紹介", "製品", "サービス", "営業", "提案資料", "プレゼン"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（製品の名前）", "cover_sub": "（一言で何か）<br>{date}" },
+  "config": {
+    "sizes_pt": { "lead": 26, "body": 22, "sub": 18, "small": 13, "strict": true },
+    "bullets": { "lead": "✓", "body": "・", "sub": "–" },
+    "colors": { "good": "6C4CF1", "bad": "E63946", "table_head": "EEEAFE", "table_border": "C9BFFA", "box_border": "6C4CF1", "page_bg": "1A1A2E" },
+    "footer": { "text": "auto", "date": "none", "number": true },
+    "math": { "font": "sans" }
+  },
+  "private_words": []
+}

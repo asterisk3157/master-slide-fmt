@@ -1,0 +1,16 @@
+{
+  "name": "club",
+  "description": "見本: サークル・イベントの説明会や勧誘（16:9）。上に色の帯、右上にロゴ、表紙は色の背景。文字は大きめ（28/24/20 pt）",
+  "match": { "paths": [], "hints": ["サークル", "部活", "新歓", "イベント", "説明会", "勧誘"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（イベントの名前）", "cover_sub": "{date}<br>Example Club" },
+  "config": {
+    "sizes_pt": { "lead": 28, "body": 24, "sub": 20, "small": 14, "strict": true },
+    "bullets": { "lead": "▶", "body": "●", "sub": "・" },
+    "colors": { "good": "1E8E5A", "bad": "E8553D", "table_head": "FCE8C3", "page_bg": "3A3A3A" },
+    "footer": { "text": "auto", "date": "field", "date_format": "ymd" },
+    "math": { "font": "sans" }
+  },
+  "private_words": []
+}

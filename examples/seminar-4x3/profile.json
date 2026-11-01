@@ -1,0 +1,16 @@
+{
+  "name": "seminar-4x3",
+  "description": "見本: 勉強会・講義・輪読の資料（4:3）。白地に左寄せの紺の見出しと細い色の線、表紙は左端に色の縦の帯。文字は 24/20/18 pt、記号は ■ ・ –",
+  "match": { "paths": [], "hints": ["勉強会", "講義", "輪読", "授業", "ゼミ", "解説"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（テーマ）", "cover_sub": "{date}<br>Example Study Group" },
+  "config": {
+    "sizes_pt": { "lead": 24, "body": 20, "sub": 18, "small": 12, "strict": true },
+    "bullets": { "lead": "■", "body": "・", "sub": "–" },
+    "colors": { "good": "1F7A7A", "bad": "C0392B", "table_head": "E3F1F1" },
+    "footer": { "text": "auto", "date": "field", "date_format": "ymd" },
+    "math": { "font": "serif" }
+  },
+  "private_words": []
+}

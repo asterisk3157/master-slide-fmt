@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ベイズの定理の入門</title>
+<style>
+  /* この資料だけの調整 */
+</style>
+</head>
+<body>
+<header>
+  <h1>ベイズの定理の入門</h1>
+  <p>勉強会の資料の見本（seminar-4x3 の形）</p>
+</header>
+<main>
+
+<section class="slide cover">
+  <div class="cover-title">ベイズの定理の入門</div>
+  <div class="cover-sub">第 3 回 勉強会<br>Example Study Group</div>
+</section>
+
+<section class="slide">
+  <h2>用語の整理</h2>
+  <p class="lead">まず，3 つの確率の名前を押さえておきます</p>
+  <table>
+    <tr><th>名前</th><th>記号</th><th>意味</th></tr>
+    <tr><td>事前確率</td><td>$P(A)$</td><td class="l">観測する前の確からしさ</td></tr>
+    <tr><td>尤度</td><td>$P(B \mid A)$</td><td class="l">A のときに B が観測される確率</td></tr>
+    <tr><td>事後確率</td><td>$P(A \mid B)$</td><td class="l">B を観測した後の確からしさ</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>ベイズの定理</h2>
+  <p class="lead">事後確率は，尤度と事前確率の積に比例します</p>
+  <div class="box eqn"><span class="eqbody">$\displaystyle P(A \mid B) = \frac{P(B \mid A)\, P(A)}{P(B)}$</span><span class="eqno">(1)</span></div>
+  <ul class="body">
+    <li>分母の $P(B)$ は，すべての場合を足し合わせて求めます
+      <ul><li>$P(B) = \sum_{i} P(B \mid A_i)\, P(A_i)$</li></ul></li>
+    <li><span class="good">候補どうしを比べるだけなら，分母は計算しなくてかまいません</span></li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>例題: 検査の陽性</h2>
+  <p class="lead">陽性でも，本当にかかっている確率は約 16% です</p>
+  <div class="two">
+    <div>
+      <ul class="body">
+        <li>かかっている人の割合：1%</li>
+        <li>かかっていれば陽性：95%</li>
+        <li>かかっていなくても陽性：5%</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box">$\displaystyle \frac{0.95 \times 0.01}{0.95 \times 0.01 + 0.05 \times 0.99} \approx 0.16$</div>
+    </div>
+  </div>
+  <img class="graph" src="figs/bayes.png" alt="検査の前と後">
+</section>
+
+<section class="slide">
+  <h2>今日のまとめ</h2>
+  <p class="lead">観測のたびに，事前確率を事後確率へ更新します</p>
+  <ul class="body">
+    <li>式 (1) の 3 つの確率の名前と意味</li>
+    <li><span class="bad">よくある間違い：「陽性なら 95% でかかっている」と読んでしまう</span>
+      <ul><li>95% は尤度 $P(B \mid A)$ で，知りたいのは事後確率 $P(A \mid B)$</li></ul></li>
+    <li>次回までに：教科書の 2.3 節を読む</li>
+  </ul>
+</section>
+
+</main>
+<footer>見本（master-slide-fmt）．数値は説明のための例</footer>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">トップへ戻る</button>
+</body>
+</html>

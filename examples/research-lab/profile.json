@@ -1,0 +1,16 @@
+{
+  "name": "research-lab",
+  "description": "見本: 研究室のゼミ・指導教員への研究報告（16:9）。左端に紺の縦の帯、左寄せの見出しの下に細い線、表紙は紺の背景。文字は 24/20/16 pt、記号は ● – ・。見本の資料はダミーのテーマ（プロンプトの長さとハルシネーション）",
+  "match": { "paths": [], "hints": ["研究", "ゼミ", "進捗報告", "指導教員", "実験", "論文紹介"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "進捗報告", "cover_sub": "{date}<br>Example Lab　Taro Example" },
+  "config": {
+    "sizes_pt": { "lead": 24, "body": 20, "sub": 16, "small": 12, "strict": true },
+    "bullets": { "lead": "●", "body": "–", "sub": "・" },
+    "colors": { "good": "1F6FB2", "bad": "C0392B", "table_head": "E6EAF2", "page_bg": "2B2F38" },
+    "footer": { "text": "auto", "date": "field", "date_format": "ymd" },
+    "math": { "font": "sans" }
+  },
+  "private_words": []
+}

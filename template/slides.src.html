@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{TITLE}}</title>
+<style>
+  /* この資料だけの調整をここに書く（体裁はマスターと設定から build が入れるので，ここには書かない） */
+</style>
+</head>
+<body>
+<header>
+  <h1>{{TITLE}}</h1>
+  <p>（誰に向けた何の資料か）。縦にスクロールして 1 枚ずつ見る</p>
+</header>
+<main>
+
+<!-- 表紙: マスターの表紙のレイアウト（タイトル + サブタイトル）に入る -->
+<section class="slide cover" id="s0">
+  <div class="cover-title">{{COVER_TITLE}}</div>
+  <div class="cover-sub">{{COVER_SUB}}</div>
+</section>
+
+<!-- 本文（.lead）＋ 内容（ul.body > li）＋ 要素（入れ子の li） -->
+<section class="slide" id="s1">
+  <h2>（対象）の概要</h2>
+  <p class="lead">本文: この枚で一番大事なことを 1 文で書く</p>
+  <ul class="body">
+    <li>内容: 本文の補足
+      <ul><li>要素: 内容の詳細</li></ul></li>
+    <li><span class="good">良い面・利点は，意味のまとまりごと good の色</span></li>
+    <li><span class="bad">悪い面・問題点・注意は，意味のまとまりごと bad の色</span></li>
+  </ul>
+</section>
+
+<!-- 図と式の枚．図は figs/ に置くと build が埋め込む -->
+<section class="slide" id="s2">
+  <h2>（対象）の流れ</h2>
+  <p class="lead">本文</p>
+  <img class="graph" src="figs/placeholder.svg" alt="（仮）図">
+  <p class="cap">式や条件を 1 行: $y = \sum_{i=1}^{P} h_i x_i + z$</p>
+</section>
+
+<!-- 表と記号の表 -->
+<section class="slide" id="s3">
+  <h2>（対象）の比較</h2>
+  <p class="lead">本文</p>
+  <table>
+    <tr><th>手法</th><th>演算量</th></tr>
+    <tr><td>手法 A</td><td class="l">$\mathcal{O}(N^2)$</td></tr>
+    <tr><td>手法 B</td><td class="l">$\displaystyle \frac{N^3}{2}$</td></tr>
+  </table>
+  <table class="sym">
+    <tr><td>$N$</td><td>記号の意味</td></tr>
+  </table>
+</section>
+
+</main>
+<footer>更新日: {{DATE}}</footer>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">トップへ戻る</button>
+</body>
+</html>

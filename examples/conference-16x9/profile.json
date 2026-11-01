@@ -1,0 +1,16 @@
+{
+  "name": "conference-16x9",
+  "description": "見本: 学会・研究会での口頭発表（16:9）。上端に細い緑の帯、見出しの下に緑の線、下に薄い灰色の脚注の帯（学会名）。文字は 24/20/18 pt、記号は ● – ・",
+  "match": { "paths": [], "hints": ["学会", "研究会", "口頭発表", "国際会議", "発表スライド"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（論文の題名）", "cover_sub": "（学会名）<br>（著者）（所属）" },
+  "config": {
+    "sizes_pt": { "lead": 24, "body": 20, "sub": 18, "small": 12, "strict": true },
+    "bullets": { "lead": "●", "body": "–", "sub": "・" },
+    "colors": { "good": "0B6E4F", "bad": "C0392B", "table_head": "E5F2EC" },
+    "footer": { "text": "auto", "date": "none", "number": true },
+    "math": { "font": "serif" }
+  },
+  "private_words": []
+}

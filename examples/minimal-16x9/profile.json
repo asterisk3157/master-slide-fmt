@@ -1,0 +1,16 @@
+{
+  "name": "minimal-16x9",
+  "description": "見本: 余白の多い社内の報告・定例の資料（16:9）。飾りなし、左上に細めの見出し、右下にページ番号だけ。本文（lead）は記号なし、文字は 24/20/16 pt",
+  "match": { "paths": [], "hints": ["社内", "定例", "月次", "報告", "提案", "振り返り"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（タイトル）", "cover_sub": "{date}　（チーム名）" },
+  "config": {
+    "sizes_pt": { "lead": 24, "body": 20, "sub": 16, "small": 12, "strict": true },
+    "bullets": { "lead": "", "body": "–", "sub": "・" },
+    "colors": { "good": "2F7D32", "bad": "C62828", "table_head": "F0F0F0", "table_border": "BDBDBD", "box_border": "333333" },
+    "footer": { "text": "", "date": "none", "number": true },
+    "math": { "font": "sans" }
+  },
+  "private_words": []
+}

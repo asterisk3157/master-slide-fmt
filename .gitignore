@@ -1,0 +1,12 @@
+# 個人のプロファイル（研究室・サークルなどのマスターと名前）は公開しない．置き方は profiles/README.md
+profiles/*
+!profiles/README.md
+# build が作る途中のもの
+.build/
+__pycache__/
+.DS_Store
+# 見本の資料から作ったもの（build の出力）
+examples/decks/*/*.html
+!examples/decks/*/*.src.html
+examples/decks/*/*.pdf
+examples/decks/*/*.pptx

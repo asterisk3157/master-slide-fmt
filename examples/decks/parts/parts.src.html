@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>部品の見本</title>
+<style>
+  /* この資料だけの調整 */
+</style>
+</head>
+<body>
+<header>
+  <h1>部品の見本</h1>
+  <p>HTML で書ける部品を 1 枚ずつ並べた見本（research-lab の形）。src を開くと書き方が分かる</p>
+</header>
+<main>
+
+<section class="slide cover">
+  <div class="cover-title">部品の見本</div>
+  <div class="cover-sub">master-slide-fmt<br>HTML で書ける部品を 1 枚ずつ</div>
+</section>
+
+<section class="slide">
+  <h2>本文・内容・要素</h2>
+  <p class="lead">本文（p.lead）：その枚で一番大事なことを 1 文で</p>
+  <ul class="body">
+    <li>内容（ul.body &gt; li）：本文の補足
+      <ul><li>要素（入れ子の li）：内容の詳細</li></ul></li>
+    <li><span class="good">良い面・利点（span.good）：意味のまとまりごとに色を付ける</span></li>
+    <li><span class="bad">悪い面・注意（span.bad）：単語 1 つだけには付けない</span></li>
+    <li>文中の式（ドル記号で囲んだ LaTeX）：$y = \Phi h + z$，$\sigma^2$，$N_{\rm T}$ は文字のまま</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>黒枠と番号つきの式</h2>
+  <p class="lead">黒枠（div.box）と，番号つきの式（div.box.eqn）</p>
+  <div class="box">黒枠：決めてほしいこと・定義・大事な一文を囲む</div>
+  <div class="box eqn"><span class="eqbody">$\displaystyle \hat{x} = \arg\min_{x} \| y - A x \|^2 = \left( A^{\rm H} A \right)^{-1} A^{\rm H} y$</span><span class="eqno">(1)</span></div>
+  <ul class="body">
+    <li>分数・上下に範囲のある Σ・根号・行列・ハットは絵（パワポでは画像）</li>
+    <li>番号はパワポでも右端にそろう</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>表と記号の表</h2>
+  <p class="lead">表（table），列の多い表（table.tight），記号の表（table.sym）</p>
+  <table class="tight">
+    <tr><th>手法</th><th>演算量</th><th>精度</th><th>備考</th></tr>
+    <tr><td>手法 A</td><td class="l">$\mathcal{O}(N^3)$</td><td>高い</td><td class="bad">遅い</td></tr>
+    <tr><td>手法 B</td><td class="l">$\mathcal{O}(N \log N)$</td><td>中くらい</td><td class="good">速い</td></tr>
+  </table>
+  <table class="sym">
+    <tr><td>$N$</td><td>データの数</td><td>$A$</td><td>観測の行列</td><td>$\hat{x}$</td><td>推定値</td></tr>
+  </table>
+</section>
+
+<section class="slide">
+  <h2>図と注記</h2>
+  <p class="lead">図（img.graph）は figs/ に置くと build が埋め込む</p>
+  <img class="graph" src="figs/left.png" alt="図">
+  <p class="cap">図の下の 1 行（p.cap）</p>
+  <p class="cap small">小さい注記（p.cap.small）：条件や試行回数など</p>
+</section>
+
+<section class="slide">
+  <h2>図を横に並べる</h2>
+  <p class="lead">div.row の中に div.col を並べ，図名（p.figcap）を付ける</p>
+  <div class="row">
+    <div class="col"><img class="graph" src="figs/left.png" alt="左の図"><p class="figcap">図 1　左の図</p></div>
+    <div class="col"><img class="graph" src="figs/right.png" alt="右の図"><p class="figcap">図 2　右の図</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>2 段組み</h2>
+  <p class="lead">div.two の中に div を 2 つ置くと，左右に分かれる</p>
+  <div class="two">
+    <div>
+      <ul class="body">
+        <li>左：箇条書き</li>
+        <li>条件や前提を並べる</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box">右：黒枠や式<br>$\displaystyle \frac{a}{b} = 0.5$</div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <h2>出典</h2>
+  <p class="lead">本文では A [1] のように番号で引き，下端に短い出典を置く</p>
+  <ul class="body">
+    <li>p.refs は脚注の帯のすぐ上に固定される</li>
+    <li>題名つきの全文は，最後の「参考文献」の枚にまとめる</li>
+  </ul>
+  <p class="refs">[1] A. Author, Example Journal, vol. 1, no. 2, pp. 3–4, 2025.　[2] B. Author, Example Conference, 2026.</p>
+</section>
+
+</main>
+<footer>見本（master-slide-fmt）．中身はすべて架空</footer>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">トップへ戻る</button>
+</body>
+</html>

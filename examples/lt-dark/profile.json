@@ -1,0 +1,16 @@
+{
+  "name": "lt-dark",
+  "description": "見本: LT・技術発表（16:9）。暗い背景に白い文字、見出しの下に短い水色の線、表紙は黒に近い背景。文字は大きめ（28/22/18 pt）、記号は ▸ – ・",
+  "match": { "paths": [], "hints": ["LT", "ライトニングトーク", "技術発表", "勉強会の発表", "テックトーク"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（話の名前）", "cover_sub": "Example LT Night {date}<br>（名前）" },
+  "config": {
+    "sizes_pt": { "lead": 28, "body": 22, "sub": 18, "small": 13, "strict": true },
+    "bullets": { "lead": "▸", "body": "–", "sub": "・" },
+    "colors": { "good": "7BD88F", "bad": "FF7A7A", "table_head": "2E3440", "table_border": "5A6070", "box_border": "CFD3DC", "page_bg": "0E0F12" },
+    "footer": { "text": "auto", "date": "none", "number": true },
+    "math": { "font": "sans" }
+  },
+  "private_words": []
+}

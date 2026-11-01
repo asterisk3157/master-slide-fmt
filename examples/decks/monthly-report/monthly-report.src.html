@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 月の会議室の利用状況</title>
+<style>
+  /* この資料だけの調整 */
+</style>
+</head>
+<body>
+<header>
+  <h1>10 月の会議室の利用状況</h1>
+  <p>社内の月次報告の見本（minimal-16x9 の形）。数値はすべて架空</p>
+</header>
+<main>
+
+<section class="slide cover">
+  <div class="cover-title">10 月の会議室の利用状況</div>
+  <div class="cover-sub">2026/11/05　総務チーム（Example Inc.）</div>
+</section>
+
+<section class="slide">
+  <h2>結論</h2>
+  <p class="lead">予約の 3 割が使われておらず，自動の取り消しで改善の見込み</p>
+  <ul class="body">
+    <li><span class="good">自動の取り消しを試した 2 部屋で，稼働率が 52% → 61%</span></li>
+    <li><span class="bad">繰り返しの予約が，使わなくなっても残り続けている</span></li>
+    <li>11 月の定例で，全部屋に広げるかを決めたい</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>稼働率の推移</h2>
+  <p class="lead">予約率は 85% 前後で変わらず，稼働率だけが上がった</p>
+  <img class="graph" src="figs/usage.png" alt="予約率と稼働率の推移">
+  <p class="cap small">月ごとの予約率と稼働率（6 部屋の平均．架空）</p>
+</section>
+
+<section class="slide">
+  <h2>稼働率の定義</h2>
+  <p class="lead">予約した時間ではなく，実際に使った時間で測る</p>
+  <div class="box eqn"><span class="eqbody">$\displaystyle \rho = \frac{1}{T} \sum_{k=1}^{K} t_k$</span><span class="eqno">(1)</span></div>
+  <ul class="body">
+    <li>$t_k$：$k$ 回目の利用で，入室から退室までの時間（入退室の記録から）</li>
+    <li>$T$：その月の営業時間の合計，$K$：利用の回数</li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>次の一手の比較</h2>
+  <p class="lead">手間が小さく効果の大きい「自動の取り消し」を勧める</p>
+  <table>
+    <tr><th>案</th><th>内容</th><th>手間</th><th>効果（見込み）</th></tr>
+    <tr><td>自動の取り消し</td><td class="l">開始 15 分で入室が無ければ取り消す</td><td class="good">小</td><td>稼働率 +9 pt</td></tr>
+    <tr><td>繰り返し予約の見直し</td><td class="l">3 か月ごとに更新を求める</td><td>中</td><td>稼働率 +4 pt</td></tr>
+    <tr><td>部屋を増やす</td><td class="l">倉庫を会議室にする</td><td class="bad">大</td><td>予約の取りやすさ</td></tr>
+  </table>
+  <div class="box">決めてほしいこと：自動の取り消しを，12 月から全部屋に広げるか</div>
+</section>
+
+</main>
+<footer>見本（master-slide-fmt）．数値はすべて架空</footer>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">トップへ戻る</button>
+</body>
+</html>

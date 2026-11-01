@@ -1,0 +1,9 @@
+{
+  "name": "plain-16x9",
+  "description": "見本: 飾りのない素の 16:9（python-pptx の Office テーマ）。体裁はすべてマスターから読む（auto）。マスターが無いときの出発点",
+  "match": { "paths": [], "hints": [] },
+  "master": "master.pptx",
+  "new_deck": { "cover_title": "（タイトル）", "cover_sub": "{date}" },
+  "config": {},
+  "private_words": []
+}

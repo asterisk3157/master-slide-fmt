@@ -1,0 +1,16 @@
+{
+  "name": "travel",
+  "description": "見本: 旅行のしおり・イベントの案内（16:9）。クリーム色の背景、茶色の見出しの下に丸いオレンジの飾り、表紙は大小の円。です・ます、記号は ● ・ –",
+  "match": { "paths": [], "hints": ["旅行", "しおり", "合宿", "遠足", "案内", "スケジュール"] },
+  "master": "master.pptx",
+  "style_guide": "STYLE.md",
+  "new_deck": { "cover_title": "（旅行の名前）", "cover_sub": "{date}" },
+  "config": {
+    "sizes_pt": { "lead": 26, "body": 22, "sub": 18, "small": 13, "strict": true },
+    "bullets": { "lead": "●", "body": "・", "sub": "–" },
+    "colors": { "good": "2A9D8F", "bad": "D62828", "table_head": "FCE1C7", "table_border": "D4A373", "box_border": "D4A373", "page_bg": "5C4033" },
+    "footer": { "text": "auto", "date": "none", "number": true },
+    "math": { "font": "sans" }
+  },
+  "private_words": []
+}

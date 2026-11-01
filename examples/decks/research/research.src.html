@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>見本の資料</title>
+<style>
+  /* この資料だけの調整 */
+</style>
+</head>
+<body>
+<header>
+  <h1>見本の資料: プロンプトの長さとハルシネーションの起こりやすさ</h1>
+  <p>master-slide-fmt の見本。テーマ・数値・文献はすべて架空。どのプロファイルでも同じ src から作れる</p>
+</header>
+<main>
+
+<section class="slide cover" id="s0">
+  <div class="cover-title">プロンプトの長さと<br>ハルシネーションの起こりやすさ</div>
+  <div class="cover-sub">2026/11/10<br>Example Lab　Taro Example</div>
+</section>
+
+<section class="slide" id="s1">
+  <h2>研究の背景</h2>
+  <p class="lead">プロンプトが長いほど，答えに事実と異なる内容が混ざりやすいのではないか</p>
+  <ul class="body">
+    <li><span class="good">文脈を足すと，正答率が上がるという報告がある [1]</span></li>
+    <li><span class="bad">一方で，関係の薄い文が増えると，誤りも増えるおそれがある</span></li>
+    <li>本研究: 中身を変えずに長さ $L$ だけを変え，ハルシネーション率を測る
+      <ul><li>関係の薄い文を足して，長さをそろえる</li></ul></li>
+  </ul>
+  <p class="refs">[1] A. Author, Example Workshop on Language Models, 2025.</p>
+</section>
+
+<section class="slide" id="s2">
+  <h2>評価の方法</h2>
+  <p class="lead">1 問ごとの判定から，長さ $L$ でのハルシネーション率を求める</p>
+  <div class="box eqn"><span class="eqbody">$\displaystyle \hat{p}(L) = \frac{1}{N} \sum_{n=1}^{N} e_n(L)$</span><span class="eqno">(1)</span></div>
+  <ul class="body">
+    <li>$e_n(L)$: $n$ 問目の答えに事実と異なる内容があれば 1，なければ 0</li>
+    <li>$N = 500$ 問，$L$ は 0.5k〜32k トークンの 7 通り</li>
+    <li>判定は 2 人で行い，食い違った問は話し合って決めた</li>
+  </ul>
+</section>
+
+<section class="slide" id="s3">
+  <h2>長さ−ハルシネーション率 特性</h2>
+  <p class="lead"><span class="bad">8k トークンを超えると，どのモデルでもハルシネーション率が急に増加</span></p>
+  <img class="graph" src="figs/hallucination_rate.png" alt="長さ−ハルシネーション率 特性">
+  <p class="cap small">長さ−ハルシネーション率 特性（各 500 問．データは架空）</p>
+</section>
+
+<section class="slide" id="s4">
+  <h2>対策の比較</h2>
+  <p class="lead">関係の深い文だけを選んで入れると，32k でも増加を抑えられた</p>
+  <table>
+    <tr><th>入れ方</th><th>8k での率</th><th>32k での率</th><th>備考</th></tr>
+    <tr><td>そのまま入れる</td><td>10.2%</td><td>18.5%</td><td>—</td></tr>
+    <tr><td>要約してから入れる [2]</td><td>8.9%</td><td>12.1%</td><td class="bad">要約の誤りが混ざる</td></tr>
+    <tr><td>関連文の選択（本研究）</td><td>6.4%</td><td>7.8%</td><td>選ぶ手間が増える</td></tr>
+  </table>
+  <table class="sym">
+    <tr><td>$L$</td><td>プロンプトの長さ</td><td>$\hat{p}(L)$</td><td>ハルシネーション率（式 (1)）</td></tr>
+  </table>
+  <p class="refs">[2] B. Author, Example Conference on NLP, 2025.　※ 数値はすべて架空</p>
+</section>
+
+</main>
+<footer>見本（master-slide-fmt）．テーマ・数値・文献はすべて架空</footer>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">トップへ戻る</button>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CI のビルド時間を半分にした話</title>
+<style>
+  /* この資料だけの調整 */
+</style>
+</head>
+<body>
+<header>
+  <h1>CI のビルド時間を半分にした話</h1>
+  <p>LT の資料の見本（lt-dark の形）。数値はすべて架空</p>
+</header>
+<main>
+
+<section class="slide cover">
+  <div class="cover-title">CI のビルド時間を<br>半分にした話</div>
+  <div class="cover-sub">Example LT Night 2026/11<br>Taro Example</div>
+</section>
+
+<section class="slide">
+  <h2>何が遅かったか</h2>
+  <p class="lead">1 回 18 分のビルドを，1 日に 40 回待っていた</p>
+  <ul class="body">
+    <li>依存のインストールを，毎回ゼロからやり直していた</li>
+    <li>テストを 1 本の流れで，順番に実行していた</li>
+    <li><span class="bad">待っている間に別の作業へ移り，戻るのが遅れる</span></li>
+  </ul>
+</section>
+
+<section class="slide">
+  <h2>やったこと</h2>
+  <p class="lead">効果が大きく，手間の小さいものから順に</p>
+  <table>
+    <tr><th>対策</th><th>短くなった時間</th><th>手間</th></tr>
+    <tr><td class="l">依存のキャッシュ</td><td>−6 分</td><td class="good">小</td></tr>
+    <tr><td class="l">テストの並列化（4 つ）</td><td>−3 分</td><td>中</td></tr>
+    <tr><td class="l">使っていない手順の削除</td><td>−0.5 分</td><td class="good">小</td></tr>
+  </table>
+  <p class="cap">短縮率は $r = \frac{T_{\rm before} - T_{\rm after}}{T_{\rm before}}$ で計算</p>
+</section>
+
+<section class="slide">
+  <h2>18 分 → 8.5 分</h2>
+  <p class="lead"><span class="good">1 回のビルドが 53% 短くなった</span></p>
+  <img class="graph" src="figs/build_time.png" alt="ビルド時間の内訳">
+  <p class="cap small">1 回のビルドの時間の内訳（各 100 回の中央値．架空）</p>
+</section>
+
+<section class="slide">
+  <h2>まとめ</h2>
+  <p class="lead">まず，どこで待っているかを測る</p>
+  <ul class="body">
+    <li>キャッシュは，効果が大きく手間が小さい</li>
+    <li>並列化は，テストどうしが独立していることが前提</li>
+    <li><span class="bad">速くしても，失敗したときのやり直しが多いと意味が薄い</span></li>
+  </ul>
+  <p class="refs">※ 数値はすべて架空</p>
+</section>
+
+</main>
+<footer>見本（master-slide-fmt）．数値はすべて架空</footer>
+<button id="top" onclick="window.scrollTo({top:0,behavior:'smooth'})">トップへ戻る</button>
+</body>
+</html>

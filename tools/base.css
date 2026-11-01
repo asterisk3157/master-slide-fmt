@@ -1,0 +1,71 @@
+/* どのマスターでも同じ部分の体裁．大きさ・色・書体は theme_css.py が :root の変数に入れる（マスターと設定から作る） */
+body { font-family: var(--font-body); background: var(--c-page); color: var(--c-text); line-height: 1.45; margin: 0; }
+header { background: #fff; padding: 14px 16px; text-align: center; border-bottom: 1px solid #999; }
+header h1 { font-size: 20px; margin: 0 0 2px; }
+header p { color: #444; margin: 0; font-size: 13px; }
+nav { text-align: center; padding: 8px 16px; font-size: 13px; }
+nav a { color: #fff; margin: 0 8px; }
+main { display: flex; flex-direction: column; align-items: center; padding: 4px 0 40px; }
+.slide { width: var(--slide-w); height: var(--slide-h); flex: none; overflow: hidden; background: var(--slide-bg); margin: 26px auto; box-shadow: 0 2px 10px rgba(0,0,0,0.45); position: relative; box-sizing: border-box; word-break: auto-phrase; line-break: strict; }
+.slide > .deco { position: absolute; inset: 0; pointer-events: none; }
+.slide > .deco > * { position: absolute; box-sizing: border-box; }
+.slide > h2 { position: absolute; box-sizing: border-box; margin: 0; display: flex; font-family: var(--font-title); white-space: nowrap; line-height: 1.2; }
+.slide > .inner { position: absolute; box-sizing: border-box; transform-origin: top center; }
+.lead, .cap, ul.body li, td { text-wrap: pretty; }
+/* 本文（lead）・内容（body）・要素（sub）の 3 段．記号の幅 = 字下げ（パワポのぶら下げインデントと同じ並び） */
+.lead { font-size: var(--fs-lead); line-height: 1.3; margin: 10px 0 8px; padding-left: var(--bw-lead); text-indent: calc(-1 * var(--bw-lead)); }
+.lead::before { content: var(--bu-lead); display: inline-block; width: var(--bw-lead); text-indent: 0; }
+.slide img { display: block; max-width: 100%; margin: 8px auto; }
+.slide img.graph { max-height: calc(var(--slide-h) * 0.58); }
+.cap { font-size: var(--fs-sub); line-height: 1.3; margin: 6px 0 6px 0.8em; padding-left: var(--bw-body); text-indent: calc(-1 * var(--bw-body)); }
+.cap::before { content: var(--bu-body); display: inline-block; width: var(--bw-body); text-indent: 0; }
+.cap.small { font-size: var(--fs-small); }
+ul.body { list-style: none; font-size: var(--fs-body); line-height: 1.3; margin: 6px 0 6px 0.8em; padding: 0; }
+ul.body > li { padding-left: var(--bw-body); text-indent: calc(-1 * var(--bw-body)); margin: 6px 0; }
+ul.body > li::before { content: var(--bu-body); display: inline-block; width: var(--bw-body); text-indent: 0; }
+ul.body ul { list-style: none; font-size: var(--fs-sub); margin: 2px 0 6px 0.6em; padding: 0; }
+ul.body ul > li { padding-left: var(--bw-sub); text-indent: calc(-1 * var(--bw-sub)); }
+ul.body ul > li::before { content: var(--bu-sub); display: inline-block; width: var(--bw-sub); text-indent: 0; }
+table { border-collapse: collapse; margin: 10px auto; font-size: var(--fs-sub); line-height: 1.3; }
+th, td { border: 1px solid var(--c-table-border); padding: 5px 14px; text-align: center; white-space: nowrap; }
+th { background: var(--c-th); }
+td.l { text-align: left; }
+table.tight th, table.tight td { padding: 5px 8px; }
+.box { border: 2px solid var(--c-box); padding: 8px 18px; margin: 8px 8px; font-size: var(--fs-body); line-height: 1.3; }
+.box.eqn { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.box.eqn .eqno { flex: none; }
+/* 文字で組めない式は，build が LaTeX で描いた絵（img.eq）にして埋め込む．テキストで書いた式（.mt）は途中で折り返さない */
+.slide img.eq { display: inline; margin: 0; max-width: none; }
+.mt { white-space: nowrap; }
+.mt sub, .mt sup { font-size: 66%; line-height: 0; }
+/* 色は単語ではなく意味のまとまり（句・文）に付ける．good = 良い面・利点，bad = 悪い面・問題点・注意 */
+.good, .blue { color: var(--c-good); }
+.bad, .red { color: var(--c-bad); }
+.sym { font-size: var(--fs-small); margin: 6px 0 0 1.2em; }
+.sym td, .sym th { border: none; padding: 1px 10px 1px 0; text-align: left; font-size: var(--fs-small); }
+.two { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.two > div { flex: 1 1 320px; }
+.row { display: flex; gap: 20px; align-items: center; justify-content: center; }
+.row > img.graph, .row > .col { width: 48%; }
+.row .col { display: flex; flex-direction: column; align-items: center; }
+.row .col img.graph { width: auto; max-width: 100%; height: auto; }
+.figcap { font-size: var(--fs-small); line-height: 1.3; margin: 4px 0 0; text-align: center; }
+.refs { position: absolute; margin: 0; font-size: var(--fs-small); line-height: 1.25; }
+/* 脚注（日付・名前・ページ番号）．位置と書式はマスターの脚注のプレースホルダーと同じ */
+.slide > .foot { position: absolute; inset: 0; pointer-events: none; }
+.slide > .foot > span { position: absolute; display: flex; align-items: center; box-sizing: border-box; white-space: nowrap; overflow: visible; }
+/* 表紙: マスターの表紙のレイアウトのタイトルとサブタイトルの位置 */
+.slide.cover .cover-title, .slide.cover .cover-sub { position: absolute; box-sizing: border-box; display: flex; flex-direction: column; line-height: 1.2; }
+.slide.cover .cover-sub { line-height: 1.3; }
+#export { position: fixed; right: 16px; top: 12px; display: flex; gap: 8px; z-index: 10; }
+#export a { background: #fff; color: #000; border: 1px solid #000; padding: 6px 12px; font-size: 13px; text-decoration: none; font-family: sans-serif; }
+#export a:hover { background: #d9d9d9; }
+/* 書き出し（?export=pdf / ?export=pptx）と印刷: スライドだけを 1 枚 1 ページで並べる */
+body.export, body.export .slide { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body.export { background: #fff; }
+body.export header, body.export nav, body.export > footer, body.export #top, body.export #export { display: none; }
+body.export main { padding: 0; display: block; }
+body.export .slide { margin: 0; box-shadow: none; break-after: page; break-inside: avoid; }
+body.export.nomaster .deco, body.export.nomaster .foot { display: none; }   /* パワポ用: 飾りと脚注はマスターの側にある */
+body > footer { text-align: center; color: #dfe6f0; font-size: 12px; padding: 14px; }
+#top { position: fixed; right: 16px; bottom: 16px; background: #fff; color: #000; border: 1px solid #000; padding: 6px 12px; cursor: pointer; font-size: 12px; }
