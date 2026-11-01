@@ -162,4 +162,4 @@ cd ~/club/slides/2026-04-10_welcome && ./build.sh
 
 ## ライセンス
 
-準備中です。
+[MIT License](LICENSE)
