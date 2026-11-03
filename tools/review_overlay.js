@@ -29,8 +29,8 @@
                  background: rgba(31,111,235,.06); display: none; }
     .msf-rv-hl.on { border-color: #ff8c00; background: rgba(255,140,0,.08); display: block; }
     .msf-rv-sel { position: absolute; z-index: 2147483000; display: none; }
-    .msf-rv-pin { position: absolute; z-index: 2147482500; width: 24px; height: 24px; margin: -12px 0 0 -12px; border-radius: 12px 12px 12px 3px;
-                  color: #fff; font: 700 11px/24px -apple-system, sans-serif; text-align: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
+    .msf-rv-pin { position: absolute; z-index: 2147482500; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 10px 10px 10px 2px;
+                  border: 2px solid #fff; box-sizing: border-box; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.35); }
     .msf-rv-pin.draft { background: #9a6700; } .msf-rv-pin.sent { background: #1f6feb; } .msf-rv-pin.work { background: #8250df; }
     .msf-rv-pin.ai { background: #1a7f37; } .msf-rv-pin.done { background: #8c959f; }
     .msf-rv-pin.new::after { content: ''; position: absolute; right: -3px; top: -3px; width: 9px; height: 9px; border-radius: 5px; background: #cf222e; border: 2px solid #fff; }
@@ -167,7 +167,8 @@
     if (!el) { closePop(); return; }
     e.preventDefault(); e.stopPropagation();
     const sl = el.closest('section.slide');
-    openNew(Object.assign(info(sl), { quote: '', path: pathOf(el, sl), what: label(el) }), el);
+    const pt = { left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY };   // 吹き出しは押した所に出す
+    openNew(Object.assign(info(sl), { quote: '', path: pathOf(el, sl), what: label(el) }), el, pt);
   }, true);
   let pick = null, pickRect = null;
   function onSelect() {
@@ -233,14 +234,15 @@
     const go = s => {
       const text = ta.value.trim(); if (!text) { ta.focus(); return; }
       api('/__review/new', Object.assign({}, target, { text, send: s })).then(r => {
+        const at = box.style.cssText;                    // 送った後のやりとりの吹き出しも，同じ場所に出す
         ta.value = ''; closePop(true); toast(s ? '送信した' : '下書きに置いた');
-        return load().then(() => openThread(r.id));
+        return load().then(() => openThread(r.id, '', at));
       }).catch(err => toast('送れなかった: ' + err.message));
     };
     send.onclick = () => go(true); draft.onclick = () => go(false); keys(ta, go);
     ta.focus({ preventScroll: true });
   }
-  function openThread(id, keepText) {
+  function openThread(id, keepText, at) {
     const t = threads.find(x => x.id === id);
     if (!t) return;
     const same = pop && pop.kind === 'thread' && pop.id === id;
@@ -248,7 +250,7 @@
     const old = same ? pop.box : null;
     const box = h('div', 'msf-rv msf-rv-pop');
     const [cls, lab] = stage(t);
-    const where = header(`${t.id}　${t.index} 枚目` + (t.title ? `「${t.title}」` : ''));
+    const where = header(`${t.index} 枚目` + (t.title ? `「${t.title}」` : ''));
     const tag = h('span', 'tag', lab);
     tag.style.background = { draft: '#9a6700', sent: '#1f6feb', work: '#8250df', ai: '#1a7f37', done: '#8c959f' }[cls];
     where.insertBefore(tag, where.lastChild);
@@ -273,13 +275,17 @@
     const res = h('button', null, t.state === 'resolved' ? '開き直す' : '解決にする');
     row.append(send, draft, res);
     box.append(ta, row);
-    if (old) { box.style.cssText = old.style.cssText; old.replaceWith(box); } else document.body.appendChild(box);
+    if (old) { box.style.cssText = old.style.cssText; old.replaceWith(box); }
+    else { document.body.appendChild(box); if (at) box.style.cssText = at; }
     pop = { kind: 'thread', id, box };
     seen[t.id] = t.messages.filter(m => m.who === 'ai').length; ls.set('seen', seen);
     const a = anchorOf(t);
     if (a) {
       if (!t.quote) { showBox(a.el); hl.classList.add('on'); } else { hl.classList.remove('on'); hl.style.display = 'none'; }
-      if (!old) place(box, a.rect);
+      if (!old && !at) {                                 // ピンを押したときは，ピンのすぐ下に出す
+        const pin = pins.find(p => p.dataset.id === t.id);
+        place(box, pin ? pin.getBoundingClientRect() : a.rect);
+      }
     }
     paint(t.id); renderPins();
     const go = s => {
@@ -304,9 +310,9 @@
       const k = Math.round(r.right / 24) + ':' + Math.round(r.top / 24);
       const n = used[k] = (used[k] || 0) + 1;
       const [cls, lab] = stage(t);
-      const p = h('div', `msf-rv msf-rv-pin ${cls}` + (unseen(t) ? ' new' : '') + (pop && pop.id === t.id ? ' on' : ''), t.id.replace(/^c/, ''));
-      p.title = `${t.id}：${lab}`;
-      Object.assign(p.style, { left: r.right + 6 + (n - 1) * 26 + 'px', top: r.top + 'px' });
+      const p = h('div', `msf-rv msf-rv-pin ${cls}` + (unseen(t) ? ' new' : '') + (pop && pop.id === t.id ? ' on' : ''));
+      p.dataset.id = t.id; p.title = lab;
+      Object.assign(p.style, { left: r.right + 6 + (n - 1) * 22 + 'px', top: r.top + 'px' });
       p.onclick = e => { e.stopPropagation(); openThread(t.id); };
       document.body.appendChild(p); pins.push(p);
     });
