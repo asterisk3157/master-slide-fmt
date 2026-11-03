@@ -43,5 +43,5 @@ if not ph.exists():
                   '<rect x="4" y="4" width="632" height="352" fill="#fafafa" stroke="#999" stroke-width="4" stroke-dasharray="14 10"/>'
                   '<text x="320" y="190" font-size="32" text-anchor="middle" fill="#777" font-family="sans-serif">（仮）図</text></svg>', encoding='utf-8')
 gi = d / '.gitignore'
-if not gi.exists(): gi.write_text('.build/\n', encoding='utf-8')
+if not gi.exists(): gi.write_text('.build/\n.review/\n', encoding='utf-8')
 print(f'作った: {src}\n  プロファイル: {name}（{why}）\n  次: 図を figs/ に置き，{deck}.src.html を書いて ./build.sh')

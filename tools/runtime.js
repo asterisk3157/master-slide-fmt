@@ -30,7 +30,7 @@
       const used = () => inner.scrollHeight;
       let over = used() - avail;
       if (over > 0 && imgs.length) {
-        imgs.forEach(im => { im.style.maxHeight = Math.max(110, im.getBoundingClientRect().height - over / imgs.length - 2) + 'px'; });
+        imgs.forEach(im => { im.style.maxHeight = Math.max(110, im.offsetHeight - over / imgs.length - 2) + 'px'; });   // offsetHeight は main の zoom を掛ける前の高さ（getBoundingClientRect は zoom 後なので，窓の幅で図の比率が変わってしまう．11/3）
         over = used() - avail;
       }
       sl.removeAttribute('data-over');

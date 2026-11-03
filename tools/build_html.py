@@ -67,6 +67,11 @@ def structure(s, th, name):
         return '%s\n<div class="deco">%s</div>\n%s\n<div class="inner">%s</div>\n%s\n%s\n%s' % (
             head, th['deco']['content'], h2s, body, '\n'.join(refs), foot(), tail)
     s = SECTION.sub(one, s)
+    if not re.search(r'<main\b', s):                     # <main> が無い src（ほかの AI が書いたものなど）は，枚をまとめて <main> で包む
+        i, j = s.find('<section'), s.rfind('</section>')    # （画面の幅に合わせた縮小と書き出しボタンが main を前提にしているため．11/3）
+        if i >= 0 and j >= 0:
+            j += len('</section>')
+            s = s[:i] + '<main>\n' + s[i:j] + '\n</main>' + s[j:]
     if 'id="export"' not in s:                            # 書き出しボタン（同じフォルダの <名前>.pdf / .pptx．build が作る）
         btn = '<div id="export"><a href="%s.pdf" data-kind="pdf" download>PDF でエクスポート</a><a href="%s.pptx" data-kind="pptx" download>パワポでエクスポート</a></div>\n' % (name, name)
         s = s.replace('<main>', btn + '<main>', 1)
