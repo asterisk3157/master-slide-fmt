@@ -6,6 +6,9 @@
 //   資料の DOM は変えない（枠・ピン・吹き出しは body の上に重ねるだけ．選んだ文は CSS Highlight で塗る）
 (() => {
   const NAME = (document.currentScript && document.currentScript.dataset.name) || document.title;
+  // ?native=1 のときは，この画面のコメントを使わない（Codex など，ブラウザに「箇所を指定」してチャットに送る機能があるとき）．
+  // 読み直しと PDF・PowerPoint のボタンだけを出す
+  const NATIVE = new URLSearchParams(location.search).get('native') === '1';
   const KEY = s => `msf-rv-${s}-${NAME}`;
   const ls = { get: (k, d) => { try { const v = localStorage.getItem(KEY(k)); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
                set: (k, v) => { try { localStorage.setItem(KEY(k), JSON.stringify(v)); } catch (e) {} } };
@@ -136,7 +139,7 @@
   const docRect = r => ({ left: r.left + scrollX, top: r.top + scrollY, right: r.right + scrollX, bottom: r.bottom + scrollY, width: r.width, height: r.height });
 
   // ---------- 状態 ----------
-  let threads = [], version = 0, mode = ls.get('mode', true), showDone = ls.get('done', false), seen = ls.get('seen', {});
+  let threads = [], version = 0, mode = NATIVE ? false : ls.get('mode', true), showDone = ls.get('done', false), seen = ls.get('seen', {});
   let pop = null;                                        // 開いている吹き出し {kind: 'new'|'thread', id, box}
   let pendingReload = false;
   function stage(t) {
@@ -149,7 +152,7 @@
     return ['work', '対応中'];
   }
   const unseen = t => t.messages.filter(m => m.who === 'ai').length > (seen[t.id] || 0);
-  const visible = () => threads.filter(t => t.state !== 'resolved' || showDone || unseen(t));
+  const visible = () => NATIVE ? [] : threads.filter(t => t.state !== 'resolved' || showDone || unseen(t));
   const drafts = () => threads.reduce((n, t) => n + t.messages.filter(m => m.who === 'user' && m.status === 'draft').length, 0);
 
   // ---------- 要素に乗る・押す・文を選ぶ ----------
@@ -178,6 +181,7 @@
   }, true);
   let pick = null, pickRect = null;
   function onSelect() {
+    if (NATIVE) return;
     const s = getSelection();
     selBtn.style.display = 'none'; pick = null;
     if (!s || s.isCollapsed || !s.rangeCount) return;
@@ -351,7 +355,8 @@
   const dl = (label, href) => { const a = h('a', 'dl'); a.href = href; a.download = ''; a.innerHTML = ICON; a.append(label); a.title = label + ' をダウンロード'; return a; };
   const pdf = dl('PDF', NAME + '.pdf'), ppt = dl('PowerPoint', NAME + '.pptx');
   prev.title = '前のコメント'; next.title = '次のコメント';
-  bar.append(dot, stat, h('span', 'sep'), prev, cnt, next, h('span', 'sep'), modeB, doneB, copy, sendAll, h('span', 'gap'), pdf, ppt);
+  if (NATIVE) bar.append(dot, stat, h('span', 'gap'), pdf, ppt);
+  else bar.append(dot, stat, h('span', 'sep'), prev, cnt, next, h('span', 'sep'), modeB, doneB, copy, sendAll, h('span', 'gap'), pdf, ppt);
   document.body.appendChild(bar);
   function renderBar() {
     const d = drafts();
@@ -372,7 +377,7 @@
   doneB.onclick = () => { showDone = !showDone; ls.set('done', showDone); renderBar(); relayout(); };
   document.addEventListener('keydown', e => {
     if (e.target.closest('textarea, input') || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.key === 'c' || e.key === 'C') setMode(!mode);
+    if (!NATIVE && (e.key === 'c' || e.key === 'C')) setMode(!mode);
   });
   function step(dir) {
     const vs = visible().sort((a, b) => (a.index - b.index) || a.id.localeCompare(b.id, undefined, { numeric: true }));

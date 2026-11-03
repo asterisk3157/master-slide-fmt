@@ -2,7 +2,8 @@
 """
 review.py — レビュー画面で資料にコメントを付け，チャットの AI に送る（Artifact を使わない．Claude 以外の AI でも使える）
 
-  python3 review.py open  <資料のフォルダ> [--name 名前] [--no-window]   レビュー画面を開く（サーバーが無ければ裏で立てる．すぐ戻る）
+  python3 review.py open  <資料のフォルダ> [--name 名前] [--no-window] [--native]   レビュー画面を開く（サーバーが無ければ裏で立てる．すぐ戻る）
+                                                                      --native: この画面のコメントを使わず，ブラウザの「箇所を指定」でチャットに送る（Codex のアプリ）
   python3 review.py wait  <資料のフォルダ> [--timeout 秒]               レビュー画面から送信されたコメントが来るまで待ち，AI 向けの文にして出す
   python3 review.py reply <資料のフォルダ> <id> "返信" [--resolve]       レビュー画面のコメントに AI から返信する（--resolve で解決にする）
   python3 review.py list  <資料のフォルダ> [--all]                      コメントの一覧（--all で解決済みも）
@@ -311,11 +312,14 @@ def cmd_open(a):
                 break
         if not info:
             raise SystemExit(f'review: サーバーを起動できませんでした。{rdir(deck) / "server.log"} を確認してください')
-    url = f'http://127.0.0.1:{info["port"]}/deck/{urllib.request.quote(name)}.html'
+    url = f'http://127.0.0.1:{info["port"]}/deck/{urllib.request.quote(name)}.html' + ('?native=1' if a.native else '')
     if not a.no_window:
         open_window(url, deck)
     print(f'review: レビュー画面 {url}（資料 {name}.html）')
-    print(f'次: このまま wait を回し，送信されたコメントを待つ。ユーザーに「送ったら教えて」と頼んでターンを終えない: python3 {ME} wait {deck}')
+    if a.native:
+        print('次: この URL をブラウザで開いてもらう。コメントはブラウザの「箇所を指定」でチャットに届くので，wait は要らない。直したら build すれば画面が読み直す')
+    else:
+        print(f'次: このまま wait を回し，送信されたコメントを待つ。ユーザーに「送ったら教えて」と頼んでターンを終えない: python3 {ME} wait {deck}')
 
 
 def cmd_wait(a):
@@ -373,7 +377,7 @@ def cmd_stop(a):
 def main():
     ap = argparse.ArgumentParser(description='レビュー画面で資料にコメントを付け、AI に送る')
     sp = ap.add_subparsers(dest='cmd', required=True)
-    p = sp.add_parser('open'); p.add_argument('deck'); p.add_argument('--name'); p.add_argument('--port', type=int, default=0); p.add_argument('--no-window', action='store_true')
+    p = sp.add_parser('open'); p.add_argument('deck'); p.add_argument('--name'); p.add_argument('--port', type=int, default=0); p.add_argument('--no-window', action='store_true'); p.add_argument('--native', action='store_true')
     p = sp.add_parser('serve'); p.add_argument('deck'); p.add_argument('--name'); p.add_argument('--port', type=int, default=0)
     p = sp.add_parser('wait'); p.add_argument('deck'); p.add_argument('--timeout', type=int, default=540, help='秒．0 で待ち続ける（既定 540）')
     p = sp.add_parser('reply'); p.add_argument('deck'); p.add_argument('id'); p.add_argument('text'); p.add_argument('--resolve', action='store_true')
