@@ -9,9 +9,8 @@ review.py — 手元の窓で資料にコメントを付け，チャットの AI
   python3 review.py stop  <資料のフォルダ>                              サーバーを止める
 
 仕組み:
-  - サーバー（127.0.0.1．Python の標準ライブラリだけ）が，build 済みの <名前>.html を窓の左に，コメントの欄を右に出す
-    （窓は review_shell.html，資料の側に差し込む部品は review_overlay.js）
-  - 窓で範囲を選んで「コメント」→ 書いて「送信」．コメントは <資料>/.review/comments.json に残る
+  - サーバー（127.0.0.1．Python の標準ライブラリだけ）が，build 済みの <名前>.html に部品（review_overlay.js）を差し込んで出す
+  - 窓で要素に乗ると塗られ，押すと吹き出しが出る（文を選んでもよい）．書いて「送信」．コメントは <資料>/.review/comments.json に残る
   - AI は wait で受け取り，直して build し，reply で返す．<名前>.html が変わると窓が自動で読み直す（今見ている枚は保つ）
   - wait の終了コード: 0 = 届いた，2 = 時間切れ（もう一度 wait する）
 """
@@ -150,8 +149,10 @@ def make_handler(deck, name):
         def do_GET(self):
             p = self.path.split('?')[0]
             if p == '/':
-                shell = (TOOLS / 'review_shell.html').read_text(encoding='utf-8').replace('{{NAME}}', name)
-                return self.send(200, shell, 'text/html; charset=utf-8')
+                self.send_response(302)
+                self.send_header('Location', f'/deck/{urllib.request.quote(name)}.html')
+                self.end_headers()
+                return
             if p == '/__review/overlay.js':
                 return self.send(200, (TOOLS / 'review_overlay.js').read_bytes(), 'text/javascript; charset=utf-8')
             if p == '/__review/ping':
@@ -168,7 +169,7 @@ def make_handler(deck, name):
                 if f == html:                                  # 資料にコメントの部品を差し込む（build の出力そのものは変えない）
                     s = body.decode('utf-8')
                     i = s.rfind('</body>')
-                    tag = '<script src="/__review/overlay.js"></script>'
+                    tag = f'<script src="/__review/overlay.js" data-name="{name}"></script>'
                     body = (s[:i] + tag + s[i:] if i >= 0 else s + tag).encode('utf-8')
                 return self.send(200, body, (mimetypes.guess_type(f.name)[0] or 'application/octet-stream'))
             return self.send(404, 'not found')
@@ -310,7 +311,7 @@ def cmd_open(a):
                 break
         if not info:
             raise SystemExit(f'review: サーバーが立たなかった（{rdir(deck) / "server.log"} を見る）')
-    url = f'http://127.0.0.1:{info["port"]}/'
+    url = f'http://127.0.0.1:{info["port"]}/deck/{urllib.request.quote(name)}.html'
     if not a.no_window:
         open_window(url, deck)
     print(f'review: 窓 {url}（資料 {name}.html）')

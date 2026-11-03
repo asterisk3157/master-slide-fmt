@@ -128,7 +128,7 @@ cd ~/club/slides/2026-04-10_welcome && ./build.sh
 <details>
 <summary>Claude 以外のエージェントで使う場合</summary>
 
-プロファイル・build・PDF・PPTX は、どのエージェントでも動きます（`SKILL.md` は Codex などからも読めます）。Artifact にコメントを付けて直す流れは Claude 専用です。ほかのエージェントでは、手元の窓（`tools/review.py`）でコメントを付けて直します。窓で文を選んでコメントし、「送信」を押すと AI に届き、AI が直して build すると窓が自動で読み直します（使い方は `SKILL.md` の 5.1）。
+プロファイル・build・PDF・PPTX は、どのエージェントでも動きます（`SKILL.md` は Codex などからも読めます）。Artifact にコメントを付けて直す流れは Claude 専用です。ほかのエージェントでは、手元の窓（`tools/review.py`）でコメントを付けて直します。窓で要素に乗ると塗られ、押すと吹き出しが出るので（文を選んでもよい）、書いて「送信」を押すと AI に届き、AI が直して build すると窓が自動で読み直します（使い方は `SKILL.md` の 5.1）。
 
 </details>
 
