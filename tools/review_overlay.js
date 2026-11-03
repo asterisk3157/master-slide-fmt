@@ -30,7 +30,9 @@
       padding: 7px 11px; border: 0; border-radius: 6px; background: #1f6feb; color: #fff; cursor: pointer;
       box-shadow: 0 2px 8px rgba(0,0,0,.3); display: none; }
     .msf-rv-btn.msf-rv-whole { background: rgba(31,111,235,.85); font-weight: 500; }
-    .msf-rv-flash { outline: 4px solid #1f6feb !important; outline-offset: 2px; transition: outline-color 1.2s; }`;
+    .msf-rv-flash { outline: 4px solid #1f6feb !important; outline-offset: 2px; transition: outline-color 1.2s; }
+    /* 窓では資料の頭の見出し・書き出しボタン・トップへ戻るを出さない（書き出しはコメントの欄の上にある） */
+    body > header, #export, #top { display: none !important; }`;
   document.head.appendChild(css);
   const mk = (cls, label) => { const b = document.createElement('button'); b.className = 'msf-rv-btn ' + cls; b.textContent = label; document.body.appendChild(b); return b; };
   const selBtn = mk('', 'コメント');

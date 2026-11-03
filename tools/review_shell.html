@@ -11,25 +11,38 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
                font: 14px/1.55 -apple-system, 'Hiragino Sans', 'Segoe UI', sans-serif; }
-  body { display: grid; grid-template-columns: 1fr 380px; }
+  /* 左に資料，真ん中に幅を変える仕切り，右にコメントの欄（幅は --pw．狭い窓では細め．たたむと 34px の帯になる） */
+  body { display: grid; grid-template-columns: 1fr 5px var(--pw, 300px); overflow: hidden; }
+  body.folded { grid-template-columns: 1fr 0 34px; }
   iframe { width: 100%; height: 100%; border: 0; background: #2f3b52; }
-  aside { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
-  header { padding: 12px 14px 10px; border-bottom: 1px solid var(--line); }
-  header h1 { margin: 0 0 2px; font-size: 15px; }
-  #status { font-size: 12px; color: var(--sub); }
+  body.dragging iframe { pointer-events: none; }
+  #split { cursor: col-resize; background: var(--line); }
+  #split:hover, body.dragging #split { background: var(--accent); }
+  aside { display: flex; flex-direction: column; height: 100%; min-height: 0; min-width: 0; background: var(--panel); }
+  #rail { display: none; }
+  body.folded aside > :not(#rail) { display: none; }
+  body.folded #rail { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0; cursor: pointer; height: 100%; }
+  #rail .n { font-size: 11px; font-weight: 600; color: #fff; background: var(--accent); border-radius: 10px; padding: 1px 6px; }
+  #rail .v { writing-mode: vertical-rl; font-size: 12px; color: var(--sub); letter-spacing: .1em; }
+  header { padding: 8px 10px 8px; border-bottom: 1px solid var(--line); }
+  .top { display: flex; align-items: center; gap: 6px; }
+  header h1 { flex: 1; min-width: 0; margin: 0; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top a { font-size: 12px; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  #fold { padding: 1px 7px; font-size: 14px; line-height: 1.2; }
+  #status { font-size: 11px; color: var(--sub); }
   #status.off { color: #cf222e; }
-  .bar { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  button { font: inherit; font-size: 13px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: #f6f8fa; cursor: pointer; }
+  .bar { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+  button { font: inherit; font-size: 12px; padding: 4px 9px; border: 1px solid var(--line); border-radius: 6px; background: #f6f8fa; cursor: pointer; }
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
   button:disabled { opacity: .45; cursor: default; }
   button.link { border: 0; background: none; padding: 2px 4px; color: var(--accent); }
-  #compose { display: none; padding: 12px 14px; border-bottom: 1px solid var(--line); background: #f0f6ff; }
+  #compose { display: none; padding: 10px; border-bottom: 1px solid var(--line); background: #f0f6ff; }
   #compose.on { display: block; }
   .where { font-size: 12px; color: var(--sub); }
   blockquote { margin: 6px 0; padding: 4px 8px; border-left: 3px solid #e3b341; background: #fff8e1; font-size: 13px; max-height: 5.5em; overflow: auto; }
   textarea { width: 100%; min-height: 72px; resize: vertical; font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
   .hint { font-size: 11px; color: var(--sub); }
-  #list { flex: 1; overflow: auto; padding: 8px 10px 40px; }
+  #list { flex: 1; overflow: auto; padding: 4px 8px 40px; }
   .empty { color: var(--sub); padding: 18px 6px; font-size: 13px; }
   .card { border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; margin: 8px 0; background: #fff; }
   .card.active { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(31,111,235,.15); }
@@ -51,9 +64,16 @@
 </head>
 <body>
 <iframe id="deck" src="/deck/{{NAME}}.html"></iframe>
+<div id="split" title="ドラッグで幅を変える（ダブルクリックで元に戻す）"></div>
 <aside>
+  <div id="rail" title="コメントの欄を開く"><span>‹</span><span class="n" id="railN">0</span><span class="v">コメント</span></div>
   <header>
-    <h1>{{NAME}}</h1>
+    <div class="top">
+      <h1 title="{{NAME}}">{{NAME}}</h1>
+      <a href="/deck/{{NAME}}.pdf" target="_blank">PDF</a>
+      <a href="/deck/{{NAME}}.pptx" download>パワポ</a>
+      <button id="fold" title="コメントの欄をたたむ">›</button>
+    </div>
     <div id="status">つないでいる…</div>
     <div class="bar">
       <button id="sendAll" class="primary" disabled>下書きを送信</button>
@@ -79,6 +99,22 @@
 (() => {
   const $ = id => document.getElementById(id);
   const frame = $('deck');
+  // コメントの欄の幅（窓の 3 割，240〜380px．ドラッグで変えた幅は覚えておく）とたたみ
+  const W_KEY = 'msf-review-width', F_KEY = 'msf-review-folded';
+  const defW = () => Math.round(Math.min(380, Math.max(240, innerWidth * 0.3)));
+  const setW = w => document.body.style.setProperty('--pw', Math.round(Math.min(innerWidth * 0.6, Math.max(220, w))) + 'px');
+  try { setW(+localStorage.getItem(W_KEY) || defW()); if (localStorage.getItem(F_KEY) === '1') document.body.classList.add('folded'); } catch (e) { setW(defW()); }
+  const fold = on => { document.body.classList.toggle('folded', on); try { localStorage.setItem(F_KEY, on ? '1' : '0'); } catch (e) {} };
+  $('fold').onclick = () => fold(true);
+  $('rail').onclick = () => fold(false);
+  $('split').addEventListener('mousedown', e => {
+    e.preventDefault(); document.body.classList.add('dragging');
+    const move = ev => setW(innerWidth - ev.clientX);
+    const up = () => { document.body.classList.remove('dragging'); removeEventListener('mousemove', move); removeEventListener('mouseup', up);
+                       try { localStorage.setItem(W_KEY, parseInt(getComputedStyle(document.body).getPropertyValue('--pw'))); } catch (e) {} };
+    addEventListener('mousemove', move); addEventListener('mouseup', up);
+  });
+  $('split').ondblclick = () => { try { localStorage.removeItem(W_KEY); } catch (e) {} setW(defW()); };
   let threads = [], version = 0, active = null, pick = null, pos = null;
   const KEY = 'msf-review-pos-{{NAME}}';
   try { pos = JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) {}
@@ -105,6 +141,7 @@
     const show = threads.filter(t => !$('hideDone').checked || t.state !== 'resolved')
                         .sort((a, b) => (a.index - b.index) || (a.id.localeCompare(b.id, undefined, { numeric: true })));
     const drafts = threads.reduce((n, t) => n + t.messages.filter(m => m.who === 'user' && m.status === 'draft').length, 0);
+    $('railN').textContent = threads.filter(t => t.state !== 'resolved').length;
     $('sendAll').disabled = !drafts;
     $('sendAll').textContent = drafts ? `下書きを送信（${drafts}）` : '下書きを送信';
     if (!show.length) {
@@ -175,7 +212,7 @@
 
   // 書く
   function compose(p) {
-    pick = p;
+    pick = p; fold(false);
     $('cWhere').textContent = `${p.index} 枚目` + (p.title ? `「${p.title}」` : '') + (p.quote ? '' : '（枚ごと）');
     $('cQuote').textContent = p.quote; $('cQuote').style.display = p.quote ? '' : 'none';
     $('compose').classList.add('on'); $('cText').value = ''; $('cText').focus();
@@ -212,7 +249,7 @@
   // サーバーからの知らせ（資料が build された / コメントが変わった）
   function connect() {
     const es = new EventSource('/__review/events');
-    es.onopen = () => { $('status').textContent = 'つながっている．build すると自動で読み直す'; $('status').className = ''; };
+    es.onopen = () => { $('status').textContent = 'つながっている（build で自動で読み直す）'; $('status').className = ''; };
     es.addEventListener('html', () => load().then(() => {}));
     es.addEventListener('comments', () => load());
     es.onerror = () => { $('status').textContent = 'サーバーとつながっていない（review.py open で開き直す）'; $('status').className = 'off'; };
