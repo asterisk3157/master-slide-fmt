@@ -4,6 +4,7 @@ review.py — レビュー画面で資料にコメントを付け，チャット
 
   python3 review.py open  <資料のフォルダ> [--name 名前] [--no-window] [--native]   レビュー画面を開く（サーバーが無ければ裏で立てる．すぐ戻る）
                                                                       --native: この画面のコメントを使わず，ブラウザの「箇所を指定」でチャットに送る（Codex のアプリ）
+                                                                      Codex のアプリから呼ぶと，自動で --native --no-window になる（--comments で外す）
   python3 review.py wait  <資料のフォルダ> [--timeout 秒]               レビュー画面から送信されたコメントが来るまで待ち，AI 向けの文にして出す
   python3 review.py reply <資料のフォルダ> <id> "返信" [--resolve]       レビュー画面のコメントに AI から返信する（--resolve で解決にする）
   python3 review.py list  <資料のフォルダ> [--all]                      コメントの一覧（--all で解決済みも）
@@ -295,7 +296,14 @@ def open_window(url, deck):
 
 
 # ---------- コマンド ----------
+def in_codex_app():
+    """Codex のアプリ（内蔵ブラウザに「箇所を指定」がある）のシェルから呼ばれたか．CLI や VS Code の拡張とは分ける"""
+    return bool(os.environ.get('CODEX_APP_TOOLS_PIPE_PATH')) or os.environ.get('CODEX_INTERNAL_ORIGINATOR_OVERRIDE') == 'Codex'
+
+
 def cmd_open(a):
+    if in_codex_app() and not a.comments:               # Codex のアプリでは，指定が無くても --native --no-window にする
+        a.native = a.no_window = True
     deck = Path(a.deck).resolve()
     name = deck_name(deck, a.name)
     if not (deck / f'{name}.html').is_file():
@@ -378,6 +386,7 @@ def main():
     ap = argparse.ArgumentParser(description='レビュー画面で資料にコメントを付け、AI に送る')
     sp = ap.add_subparsers(dest='cmd', required=True)
     p = sp.add_parser('open'); p.add_argument('deck'); p.add_argument('--name'); p.add_argument('--port', type=int, default=0); p.add_argument('--no-window', action='store_true'); p.add_argument('--native', action='store_true')
+    p.add_argument('--comments', action='store_true', help='Codex のアプリでも，この画面のコメント（wait）を使う')
     p = sp.add_parser('serve'); p.add_argument('deck'); p.add_argument('--name'); p.add_argument('--port', type=int, default=0)
     p = sp.add_parser('wait'); p.add_argument('deck'); p.add_argument('--timeout', type=int, default=540, help='秒．0 で待ち続ける（既定 540）')
     p = sp.add_parser('reply'); p.add_argument('deck'); p.add_argument('id'); p.add_argument('text'); p.add_argument('--resolve', action='store_true')
