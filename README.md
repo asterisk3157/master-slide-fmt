@@ -12,7 +12,7 @@ master-slide-fmt は、自分のパワポのマスター（.pptx）の体裁で�
 | HTML・PDF・PPTX の作成 | 1 つの原稿から、プレビュー用の HTML、PDF、PPTX を作ります |
 | 編集できる PPTX | 文はテキスト、表は表、式は PowerPoint の数式として、マスターの上に置きます |
 | 用途ごとの形の切り替え | 研究室・サークル・会社など、形ごとのマスターと設定を「プロファイル」にまとめ、作業しているフォルダから選びます |
-| コメントでの修正 | 公開したページにコメントを付けると、Claude が直して公開し直します |
+| コメントでの修正 | 手元の窓（どの AI でも）か、Claude の Artifact にコメントを付けると、AI が直して返信します |
 
 ## インストール方法
 
@@ -128,7 +128,7 @@ cd ~/club/slides/2026-04-10_welcome && ./build.sh
 <details>
 <summary>Claude 以外のエージェントで使う場合</summary>
 
-プロファイル・build・PDF・PPTX は、どのエージェントでも動きます（`SKILL.md` は Codex などからも読めます）。Artifact にコメントを付けて直す流れは Claude の機能を使うため、Claude 専用です。ほかのエージェントでは、build した PDF を見て、直す所をチャットで伝えます。
+プロファイル・build・PDF・PPTX は、どのエージェントでも動きます（`SKILL.md` は Codex などからも読めます）。Artifact にコメントを付けて直す流れは Claude 専用です。ほかのエージェントでは、手元の窓（`tools/review.py`）でコメントを付けて直します。窓で文を選んでコメントし、「送信」を押すと AI に届き、AI が直して build すると窓が自動で読み直します（使い方は `SKILL.md` の 5.1）。
 
 </details>
 
