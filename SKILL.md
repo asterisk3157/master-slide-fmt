@@ -107,9 +107,9 @@ python3 $S/tools/review.py stop <資料のフォルダ>     # サーバーを止
 - コメントは `<資料>/.review/comments.json` に残る（`.review/` は git に入れない．new_deck のひな形の `.gitignore` に入っている）
 
 **AI ごとの待ち方**
-- **Claude Code**: `wait <資料> --timeout 0` を裏で回す（Bash の `run_in_background`）。コメントが届くと終わり，その知らせで起きる。返信し終えたら，また裏で回す
-- **Claude のデスクトップ（Code）**: レビュー画面は内蔵のブラウザに出す（`open --no-window` で URL を出し，ブラウザのペインで開く）。`*.src.html` を Edit・Write で直すと，アプリがそのファイルをペインの新しいタブで開いて画面が隠れるので，レビュー画面を使っている間はシェル（python など）で直す
-- **Codex のアプリ**: Codex の内蔵ブラウザには，ページの箇所を選んでチャットに送る機能（「質問や変更をしたい箇所を指定」，⇧⌘.）がある。これを使う。`open <資料>` で URL を出し，内蔵ブラウザで開いてもらう（Codex のアプリから呼ぶと，自動で `--native --no-window` になる．環境変数 `CODEX_APP_TOOLS_PIPE_PATH` などで見分ける．この画面のコメントを使いたいときは `--comments`）。`--native` の画面はこの画面のコメントを出さず，build したときの読み直しと PDF・PowerPoint のボタンだけになる（Codex の選択とぶつからない）。指定した箇所と文はチャットに届いて AI が動くので，`wait` は要らない。届いた要素の文・枚の id（`section#s3` など）から `*.src.html` の場所を探して直し，build する
+- **Claude Code（ターミナル）**: `wait <資料> --timeout 0` を裏で回す（Bash の `run_in_background`）。コメントが届くと終わり，その知らせで起きる。返信し終えたら，また裏で回す
+- **Claude のデスクトップ（Code）**: 内蔵のブラウザに「要素を選択または注釈を追加」（⇧⌘S）がある。Codex のアプリと同じく，`open <資料>` が自動で `--native --no-window` になるので，出た URL を内蔵ブラウザで開いてもらい，コメントはその機能で送ってもらう（`wait` は要らない）。`*.src.html` を Edit・Write で直すと，アプリがそのファイルをペインの新しいタブで開いて画面が隠れるので，シェル（python など）で直す
+- **Codex のアプリ**: Codex の内蔵ブラウザには，ページの箇所を選んでチャットに送る機能（「質問や変更をしたい箇所を指定」，⇧⌘.）がある。これを使う。`open <資料>` で URL を出し，内蔵ブラウザで開いてもらう（Codex のアプリ・Claude のデスクトップから呼ぶと，自動で `--native --no-window` になる．環境変数 `CODEX_APP_TOOLS_PIPE_PATH`・`CLAUDE_CODE_ENTRYPOINT=claude-desktop` などで見分ける．この画面のコメントを使いたいときは `--comments`）。`--native` の画面はこの画面のコメントを出さず，build したときの読み直しと PDF・PowerPoint のボタンだけになる（Codex の選択とぶつからない）。指定した箇所と文はチャットに届いて AI が動くので，`wait` は要らない。届いた要素の文・枚の id（`section#s3` など）から `*.src.html` の場所を探して直し，build する
 - **Codex の CLI など（裏で回して起きる仕組みが無いもの）**: `open` の後，**同じターンのうちに** `wait` を前で回し始める。「送ったら教えて」とユーザーに頼んでターンを終えない（ターンを終えると，送信されても AI は動けない）
   - シェルのコマンドの時間切れより短い `--timeout` を付ける（例: `wait <資料> --timeout 240`．コマンドの時間切れは 300 秒以上にする）
   - 時間切れ（終了コード 2）なら，ユーザーに聞かず，すぐもう一度 `wait`。届いたら直して `build`・`reply` し，また `wait` に戻る
