@@ -49,17 +49,23 @@
                            border: 1px solid #d0d7de; border-radius: 6px; }
     .msf-rv-pop .row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; justify-content: flex-start; }
     .msf-rv-pop .tag { font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 9px; color: #fff; }
-    .msf-rv-bar { position: fixed; z-index: 2147483300; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 6px; align-items: center;
-                  background: #24292f; color: #fff; padding: 6px 8px 6px 12px; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.35); white-space: nowrap;
-                  max-width: calc(100vw - 16px); overflow-x: auto; box-sizing: border-box; }
-    .msf-rv-bar button { background: #32383f; border-color: #444c56; color: #fff; padding: 3px 9px; }
+    /* 上に固定したヘッダー（左にコメントの操作，右に書き出し）．資料はその下から始める */
+    body { padding-top: 52px !important; }
+    .msf-rv-bar { position: fixed; z-index: 2147483300; left: 0; right: 0; top: 0; height: 48px; display: flex; gap: 6px; align-items: center;
+                  background: #24292f; color: #fff; padding: 0 12px; box-shadow: 0 2px 8px rgba(0,0,0,.3); white-space: nowrap;
+                  overflow-x: auto; box-sizing: border-box; }
+    .msf-rv-bar button { background: #32383f; border-color: #444c56; color: #fff; padding: 4px 10px; }
     .msf-rv-bar button.pri { background: #1f6feb; border-color: #1f6feb; }
     .msf-rv-bar button.off { color: #8c959f; }
-    .msf-rv-bar a { color: #9ecbff; text-decoration: none; font-size: 12px; }
     .msf-rv-bar .dot { width: 8px; height: 8px; border-radius: 4px; background: #3fb950; flex: none; }
     .msf-rv-bar .dot.off { background: #f85149; }
-    .msf-rv-bar .sep { width: 1px; height: 16px; background: #444c56; flex: none; }
-    .msf-rv-toast { position: fixed; z-index: 2147483400; left: 50%; bottom: 58px; transform: translateX(-50%); background: #24292f; color: #fff;
+    .msf-rv-bar .sep { width: 1px; height: 18px; background: #444c56; flex: none; }
+    .msf-rv-bar .gap { flex: 1; min-width: 8px; }
+    .msf-rv-bar a.dl { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1f2328; background: #fff;
+                       border-radius: 6px; padding: 6px 12px; text-decoration: none; flex: none; }
+    .msf-rv-bar a.dl:hover { background: #dbe9ff; }
+    .msf-rv-bar a.dl svg { width: 14px; height: 14px; }
+    .msf-rv-toast { position: fixed; z-index: 2147483400; left: 50%; bottom: 18px; transform: translateX(-50%); background: #24292f; color: #fff;
                     padding: 6px 12px; border-radius: 6px; opacity: 0; transition: opacity .3s; pointer-events: none; }
     .msf-rv-toast.on { opacity: .92; }`;
   document.head.appendChild(css);
@@ -198,7 +204,7 @@
     const w = box.offsetWidth, hh = box.offsetHeight;
     const left = Math.min(Math.max(scrollX + 8, r.left), scrollX + innerWidth - w - 12);
     let top = r.bottom + 8;
-    if (top + hh > scrollY + innerHeight - 64 && r.top - hh - 8 > scrollY) top = r.top - hh - 8;
+    if (top + hh > scrollY + innerHeight - 12 && r.top - hh - 8 > scrollY + 56) top = r.top - hh - 8;   // 上はヘッダーの下まで
     Object.assign(box.style, { left: left + 'px', top: top + 'px' });
   }
   function closePop(force) {
@@ -341,10 +347,11 @@
   const prev = h('button', null, '‹'), next = h('button', null, '›'), cnt = h('span', null, '');
   const modeB = h('button', null, ''), doneB = h('button', null, '');
   const copy = h('button', null, 'コメントをコピー'); copy.title = 'AI に送信できないときに使います';
-  const pdf = h('a', null, 'PDF'); pdf.href = NAME + '.pdf'; pdf.target = '_blank';
-  const ppt = h('a', null, 'PowerPoint'); ppt.href = NAME + '.pptx'; ppt.download = '';
+  const ICON = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M7.25 1.5h1.5v7.19l2.47-2.47 1.06 1.06L8 11.56 3.72 7.28l1.06-1.06 2.47 2.47zM2 13h12v1.5H2z"/></svg>';
+  const dl = (label, href) => { const a = h('a', 'dl'); a.href = href; a.download = ''; a.innerHTML = ICON; a.append(label); a.title = label + ' をダウンロード'; return a; };
+  const pdf = dl('PDF', NAME + '.pdf'), ppt = dl('PowerPoint', NAME + '.pptx');
   prev.title = '前のコメント'; next.title = '次のコメント';
-  bar.append(dot, stat, sendAll, h('span', 'sep'), prev, cnt, next, h('span', 'sep'), modeB, doneB, copy, h('span', 'sep'), pdf, ppt);
+  bar.append(dot, stat, h('span', 'sep'), prev, cnt, next, h('span', 'sep'), modeB, doneB, copy, sendAll, h('span', 'gap'), pdf, ppt);
   document.body.appendChild(bar);
   function renderBar() {
     const d = drafts();
