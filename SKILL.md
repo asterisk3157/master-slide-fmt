@@ -88,7 +88,7 @@ cd <資料のフォルダ> && ./build.sh            # HTML・PDF・パワポ（-
 | **5.1 レビュー画面**（`tools/review.py`） | どれでも（Codex・Claude Code・Gemini CLI など，シェルが使えれば） | 手元のブラウザに開く画面（Chrome の `--app`）．資料は外に出ない |
 | **5.2 Artifact** | Claude だけ | claude.ai のページ（スマホからも見られる．人に共有できる） |
 
-ユーザーがどちらとも言わなければ，Claude なら 5.2，ほかの AI なら 5.1 を使う。
+ユーザーがどちらとも言わなければ，**Claude なら 5.2（Artifact）**，**Codex のアプリなら 5.1 を内蔵ブラウザの「箇所を指定」で**，そのほかの AI なら 5.1 を使う（2026-11-03 に Claude のデスクトップ・Codex のアプリで試し，Claude は Artifact の方が使いやすく，Codex のアプリは内蔵ブラウザの指定でよかった）。
 
 ### 5.1 レビュー画面（どの AI でも）
 
