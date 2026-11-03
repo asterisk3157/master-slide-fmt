@@ -315,7 +315,7 @@ def cmd_open(a):
     if not a.no_window:
         open_window(url, deck)
     print(f'review: レビュー画面 {url}（資料 {name}.html）')
-    print(f'  コメントを待つ: python3 {ME} wait {deck}')
+    print(f'次: このまま wait を回し，送信されたコメントを待つ。ユーザーに「送ったら教えて」と頼んでターンを終えない: python3 {ME} wait {deck}')
 
 
 def cmd_wait(a):
@@ -329,7 +329,7 @@ def cmd_wait(a):
             print(text)
             return 0
         if a.timeout and time.time() - t0 > a.timeout:
-            print(f'review: {a.timeout} 秒待ちましたが、コメントはまだ届いていません。もう一度 wait する: python3 {ME} wait {deck}')
+            print(f'review: {a.timeout} 秒待ちましたが、コメントはまだ届いていません。ユーザーに聞かず、すぐもう一度 wait する: python3 {ME} wait {deck}')
             return 2
         time.sleep(1)
 
