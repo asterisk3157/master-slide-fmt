@@ -39,15 +39,15 @@
     .msf-rv-pop .where { font-size: 11px; color: #59636e; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
     .msf-rv-pop .where > span:first-child { flex: 1; }
     .msf-rv-pop .x { cursor: pointer; font-size: 16px; line-height: 1; color: #59636e; }
-    .msf-rv-pop blockquote { margin: 6px 0; padding: 3px 8px; border-left: 3px solid #e3b341; background: #fff8e1; max-height: 4.6em; overflow: auto; font-size: 12px; }
+    .msf-rv-pop blockquote { margin: 6px 0; padding: 3px 8px; border-radius: 4px; background: #fff3cd; max-height: 4.6em; overflow: auto; font-size: 12px; }
     .msf-rv-pop .el { margin: 6px 0; font-size: 11px; color: #59636e; font-family: ui-monospace, Menlo, monospace; word-break: break-all; }
     .msf-rv-pop .msgs { max-height: 40vh; overflow: auto; }
     .msf-rv-pop .msg { margin: 6px 0 0; padding: 6px 8px; border-radius: 6px; background: #f6f8fa; white-space: pre-wrap; word-break: break-word; }
-    .msf-rv-pop .msg.ai { background: #eef8f0; border-left: 3px solid #1a7f37; }
+    .msf-rv-pop .msg.ai { background: #e6f4ea; }
     .msf-rv-pop .who { display: block; font-size: 11px; color: #59636e; }
     .msf-rv-pop textarea { width: 100%; box-sizing: border-box; min-height: 64px; margin-top: 8px; resize: vertical; font: inherit; padding: 6px 8px;
                            border: 1px solid #d0d7de; border-radius: 6px; }
-    .msf-rv-pop .row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+    .msf-rv-pop .row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; align-items: center; justify-content: flex-start; }
     .msf-rv-pop .tag { font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 9px; color: #fff; }
     .msf-rv-bar { position: fixed; z-index: 2147483300; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 6px; align-items: center;
                   background: #24292f; color: #fff; padding: 6px 8px 6px 12px; border-radius: 999px; box-shadow: 0 4px 16px rgba(0,0,0,.35); white-space: nowrap;
@@ -91,7 +91,7 @@
     return (sl.id ? '#' + sl.id : 'section.slide') + (parts.length ? ' > ' + parts.join(' > ') : '');
   }
   const label = el => {
-    if (el.matches('section.slide')) return '枚ごと';
+    if (el.matches('section.slide')) return 'スライド全体';
     if (el.matches('img, svg')) return '図';
     if (el.matches('table, td, th')) return '表';
     if (el.matches('h2, .cover-title')) return '見出し';
@@ -134,13 +134,13 @@
   let pop = null;                                        // 開いている吹き出し {kind: 'new'|'thread', id, box}
   let pendingReload = false;
   function stage(t) {
-    if (t.state === 'resolved') return ['done', '解決'];
+    if (t.state === 'resolved') return ['done', '解決済み'];
     const last = t.messages[t.messages.length - 1];
     if (!last) return ['done', ''];
-    if (last.who === 'ai') return ['ai', 'AI の返信あり'];
+    if (last.who === 'ai') return ['ai', '返信あり'];
     if (last.status === 'draft') return ['draft', '下書き'];
-    if (last.status === 'sent') return ['sent', '送信済み（AI 待ち）'];
-    return ['work', 'AI が対応中'];
+    if (last.status === 'sent') return ['sent', '送信済み'];
+    return ['work', '対応中'];
   }
   const unseen = t => t.messages.filter(m => m.who === 'ai').length > (seen[t.id] || 0);
   const visible = () => threads.filter(t => t.state !== 'resolved' || showDone || unseen(t));
@@ -183,7 +183,7 @@
     if (!quote) return;
     const c = node(r.commonAncestorContainer);
     const el = c === sl ? sl : (c.closest(BLOCK) || c);
-    pick = Object.assign(info(sl), { quote, path: pathOf(sl.contains(el) ? el : sl, sl), what: '選んだ文' });
+    pick = Object.assign(info(sl), { quote, path: pathOf(sl.contains(el) ? el : sl, sl), what: '選択したテキスト' });
     pickRect = r.getBoundingClientRect();
     const rc = docRect(pickRect);
     Object.assign(selBtn.style, { left: Math.max(scrollX + 4, rc.right - 70) + 'px', top: rc.bottom + 6 + 'px', display: 'block' });
@@ -204,7 +204,7 @@
   function closePop(force) {
     if (!pop) return true;
     const ta = pop.box.querySelector('textarea');
-    if (!force && ta && ta.value.trim() && !confirm('書きかけのコメントを捨てる？')) return false;
+    if (!force && ta && ta.value.trim() && !confirm('入力中のコメントを破棄しますか？')) return false;
     pop.box.remove(); pop = null;
     hl.classList.remove('on'); hl.style.display = 'none';
     paint();
@@ -213,7 +213,7 @@
   }
   function header(text) {
     const w = h('div', 'where'); w.append(h('span', null, text));
-    const x = h('span', 'x', '×'); x.title = '閉じる（Esc）'; x.onclick = () => closePop(); w.append(x);
+    const x = h('span', 'x', '×'); x.title = '閉じる'; x.onclick = () => closePop(); w.append(x);
     return w;
   }
   const keys = (ta, go) => { ta.onkeydown = e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) go(true); if (e.key === 'Escape') closePop(); }; };
@@ -222,9 +222,9 @@
     const box = h('div', 'msf-rv msf-rv-pop');
     box.append(header(`${target.index} 枚目` + (target.title ? `「${target.title}」` : '') + '　' + (target.what || '')));
     if (target.quote) box.append(h('blockquote', null, target.quote));
-    const ta = h('textarea'); ta.placeholder = 'コメント（⌘/Ctrl + Enter で送信，Esc で閉じる）';
+    const ta = h('textarea'); ta.placeholder = 'コメントを入力';
     const row = h('div', 'row');
-    const send = h('button', 'pri', '送信'), draft = h('button', null, '下書きに置く');
+    const send = h('button', 'pri', '送信'), draft = h('button', null, '下書き保存');
     row.append(send, draft);
     box.append(ta, row);
     document.body.appendChild(box);
@@ -235,9 +235,9 @@
       const text = ta.value.trim(); if (!text) { ta.focus(); return; }
       api('/__review/new', Object.assign({}, target, { text, send: s })).then(r => {
         const at = box.style.cssText;                    // 送った後のやりとりの吹き出しも，同じ場所に出す
-        ta.value = ''; closePop(true); toast(s ? '送信した' : '下書きに置いた');
+        ta.value = ''; closePop(true); toast(s ? '送信しました' : '下書きに保存しました');
         return load().then(() => openThread(r.id, '', at));
-      }).catch(err => toast('送れなかった: ' + err.message));
+      }).catch(err => toast('送信できませんでした'));
     };
     send.onclick = () => go(true); draft.onclick = () => go(false); keys(ta, go);
     ta.focus({ preventScroll: true });
@@ -259,20 +259,20 @@
     const msgs = h('div', 'msgs');
     t.messages.forEach((m, i) => {
       const d = h('div', 'msg' + (m.who === 'ai' ? ' ai' : ''));
-      d.append(h('span', 'who', (m.who === 'ai' ? 'AI' : 'あなた') + (m.status === 'draft' ? '（下書き）' : '') + '　' + (m.at || '').slice(5, 16).replace('T', ' ')),
+      d.append(h('span', 'who', (m.who === 'ai' ? 'AI' : 'ユーザー') + (m.status === 'draft' ? '・下書き' : '') + '　' + (m.at || '').slice(5, 16).replace('T', ' ')),
                document.createTextNode(m.text));
       if (m.status === 'draft') {
-        const del = h('button', 'lnk', '消す');
+        const del = h('button', 'lnk', '削除');
         del.onclick = () => api('/__review/edit', { id: t.id, msg: i, text: '' }).then(() => { closePop(true); load(); });
         d.append(del);
       }
       msgs.append(d);
     });
     box.append(msgs);
-    const ta = h('textarea'); ta.placeholder = '続けて書く（⌘/Ctrl + Enter で送信）'; ta.value = keepText || '';
+    const ta = h('textarea'); ta.placeholder = '返信を入力'; ta.value = keepText || '';
     const row = h('div', 'row');
-    const send = h('button', 'pri', '送信'), draft = h('button', null, '下書きに置く');
-    const res = h('button', null, t.state === 'resolved' ? '開き直す' : '解決にする');
+    const send = h('button', 'pri', '送信'), draft = h('button', null, '下書き保存');
+    const res = h('button', null, t.state === 'resolved' ? '未解決に戻す' : '解決済みにする');
     row.append(send, draft, res);
     box.append(ta, row);
     if (old) { box.style.cssText = old.style.cssText; old.replaceWith(box); }
@@ -290,8 +290,8 @@
     paint(t.id); renderPins();
     const go = s => {
       const v = ta.value.trim(); if (!v) { ta.focus(); return; }
-      api('/__review/reply', { id: t.id, text: v, send: s }).then(() => { ta.value = ''; toast(s ? '送信した' : '下書きに置いた'); load(); })
-        .catch(err => toast('送れなかった: ' + err.message));
+      api('/__review/reply', { id: t.id, text: v, send: s }).then(() => { ta.value = ''; toast(s ? '送信しました' : '下書きに保存しました'); load(); })
+        .catch(err => toast('送信できませんでした'));
     };
     send.onclick = () => go(true); draft.onclick = () => go(false); keys(ta, go);
     res.onclick = () => api('/__review/state', { id: t.id, state: t.state === 'resolved' ? 'open' : 'resolved' }).then(load);
@@ -340,9 +340,9 @@
   const sendAll = h('button', 'pri', '');
   const prev = h('button', null, '‹'), next = h('button', null, '›'), cnt = h('span', null, '');
   const modeB = h('button', null, ''), doneB = h('button', null, '');
-  const copy = h('button', null, 'コピー'); copy.title = 'AI に届かないときは，これでコピーしてチャットに貼る';
+  const copy = h('button', null, 'コメントをコピー'); copy.title = 'AI に送信できないときに使います';
   const pdf = h('a', null, 'PDF'); pdf.href = NAME + '.pdf'; pdf.target = '_blank';
-  const ppt = h('a', null, 'パワポ'); ppt.href = NAME + '.pptx'; ppt.download = '';
+  const ppt = h('a', null, 'PowerPoint'); ppt.href = NAME + '.pptx'; ppt.download = '';
   prev.title = '前のコメント'; next.title = '次のコメント';
   bar.append(dot, stat, sendAll, h('span', 'sep'), prev, cnt, next, h('span', 'sep'), modeB, doneB, copy, h('span', 'sep'), pdf, ppt);
   document.body.appendChild(bar);
@@ -350,14 +350,14 @@
     const d = drafts();
     sendAll.style.display = d ? '' : 'none'; sendAll.textContent = `下書きを送信（${d}）`;
     cnt.textContent = `${threads.filter(t => t.state !== 'resolved').length} 件`;
-    modeB.textContent = mode ? 'コメント：入' : 'コメント：切'; modeB.className = mode ? '' : 'off';
-    modeB.title = '入のとき，要素に乗ると塗られ，押すと吹き出しが出る（C キーでも切り替え）';
-    doneB.textContent = showDone ? '解決済み：出す' : '解決済み：隠す';
+    modeB.textContent = mode ? 'コメント：オン' : 'コメント：オフ'; modeB.className = mode ? '' : 'off';
+    modeB.title = 'C キーでも切り替えられます';
+    doneB.textContent = showDone ? '解決済み：表示' : '解決済み：非表示';
   }
-  sendAll.onclick = () => api('/__review/send', {}).then(() => { toast('下書きを送信した'); load(); });
+  sendAll.onclick = () => api('/__review/send', {}).then(() => { toast('下書きを送信しました'); load(); });
   copy.onclick = () => api('/__review/copy', {}).then(r => {
-    if (!r.text) { toast('送るコメントが無い'); return; }
-    navigator.clipboard.writeText(r.text).then(() => toast('コピーした．チャットに貼る'), () => prompt('コピーしてチャットに貼る', r.text));
+    if (!r.text) { toast('送信するコメントがありません'); return; }
+    navigator.clipboard.writeText(r.text).then(() => toast('コピーしました。チャットに貼り付けてください'), () => prompt('このテキストをコピーして、チャットに貼り付けてください', r.text));
     load();
   });
   const setMode = v => { mode = v; ls.set('mode', v); if (!v && !hl.classList.contains('on')) hl.style.display = 'none'; renderBar(); };
@@ -400,7 +400,7 @@
   }
   function reloadSoon() {
     const ta = pop && pop.box.querySelector('textarea');
-    if (ta && ta.value.trim()) { pendingReload = true; toast('資料が更新された．書きかけを閉じると読み直す'); return; }
+    if (ta && ta.value.trim()) { pendingReload = true; toast('スライドが更新されました。入力中のコメントを閉じると再読み込みします'); return; }
     reloadNow();
   }
   function restore() {
@@ -411,15 +411,15 @@
     if (!sl) return;
     const go = () => { const rc = sl.getBoundingClientRect(); scrollBy(0, rc.top + rc.height * (p.off || 0)); };
     go(); setTimeout(go, 300);
-    setTimeout(() => { go(); relayout(); if (p.open) openThread(p.open); toast('資料を読み直した'); }, 1600);
+    setTimeout(() => { go(); relayout(); if (p.open) openThread(p.open); toast('スライドを再読み込みしました'); }, 1600);
   }
   function connect() {
     const es = new EventSource('/__review/events');
-    es.onopen = () => { dot.className = 'dot'; stat.textContent = ''; bar.title = 'review.py とつながっている．build すると自動で読み直す'; };
+    es.onopen = () => { dot.className = 'dot'; stat.textContent = ''; bar.title = ''; };
     es.addEventListener('html', () => load());
     es.addEventListener('comments', () => load());
-    es.onerror = () => { dot.className = 'dot off'; stat.textContent = '切れた'; bar.title = 'review.py のサーバーとつながっていない（review.py open で開き直す）'; };
+    es.onerror = () => { dot.className = 'dot off'; stat.textContent = '接続が切れました'; };
   }
   renderBar();
-  load().then(() => { restore(); connect(); }).catch(() => { dot.className = 'dot off'; stat.textContent = 'サーバー無し'; });
+  load().then(() => { restore(); connect(); }).catch(() => { dot.className = 'dot off'; stat.textContent = 'サーバーに接続できません'; });
 })();

@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-review.py — 手元の窓で資料にコメントを付け，チャットの AI に送る（Artifact を使わない．Claude 以外の AI でも使える）
+review.py — レビュー画面で資料にコメントを付け，チャットの AI に送る（Artifact を使わない．Claude 以外の AI でも使える）
 
-  python3 review.py open  <資料のフォルダ> [--name 名前] [--no-window]   窓を開く（サーバーが無ければ裏で立てる．すぐ戻る）
-  python3 review.py wait  <資料のフォルダ> [--timeout 秒]               窓から送信されたコメントが来るまで待ち，AI 向けの文にして出す
-  python3 review.py reply <資料のフォルダ> <id> "返信" [--resolve]       窓のコメントに AI から返信する（--resolve で解決にする）
+  python3 review.py open  <資料のフォルダ> [--name 名前] [--no-window]   レビュー画面を開く（サーバーが無ければ裏で立てる．すぐ戻る）
+  python3 review.py wait  <資料のフォルダ> [--timeout 秒]               レビュー画面から送信されたコメントが来るまで待ち，AI 向けの文にして出す
+  python3 review.py reply <資料のフォルダ> <id> "返信" [--resolve]       レビュー画面のコメントに AI から返信する（--resolve で解決にする）
   python3 review.py list  <資料のフォルダ> [--all]                      コメントの一覧（--all で解決済みも）
   python3 review.py stop  <資料のフォルダ>                              サーバーを止める
 
 仕組み:
   - サーバー（127.0.0.1．Python の標準ライブラリだけ）が，build 済みの <名前>.html に部品（review_overlay.js）を差し込んで出す
-  - 窓で要素に乗ると塗られ，押すと吹き出しが出る（文を選んでもよい）．書いて「送信」．コメントは <資料>/.review/comments.json に残る
-  - AI は wait で受け取り，直して build し，reply で返す．<名前>.html が変わると窓が自動で読み直す（今見ている枚は保つ）
+  - レビュー画面で要素に乗ると塗られ，押すと吹き出しが出る（文を選んでもよい）．書いて「送信」．コメントは <資料>/.review/comments.json に残る
+  - AI は wait で受け取り，直して build し，reply で返す．<名前>.html が変わると画面が自動で読み直す（今見ている枚は保つ）
   - wait の終了コード: 0 = 届いた，2 = 時間切れ（もう一度 wait する）
 """
 import argparse, json, mimetypes, os, subprocess, sys, time, threading, urllib.request, webbrowser
@@ -20,7 +20,7 @@ from datetime import datetime
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 try:
-    import fcntl                                              # 窓のサーバーと wait・reply が同じファイルを書くので，ロックする
+    import fcntl                                              # 画面のサーバーと wait・reply が同じファイルを書くので，ロックする
 except ImportError:                                           # Windows には無い（そのときはロックしない）
     fcntl = None
 
@@ -60,7 +60,7 @@ def find(data, tid):
     for t in data['threads']:
         if t['id'] == tid:
             return t
-    raise LookupError(f'review: {tid} というコメントは無い（review.py list で一覧）')
+    raise LookupError(f'review: {tid} というコメントはありません。review.py list で一覧を表示できます。')
 
 
 def pending(data, statuses=('sent',)):
@@ -78,13 +78,13 @@ def where(t):
 
 
 def prompt(deck, items):
-    """AI がそのまま読める形にする（wait の出力と，窓の「コピー」で同じものを使う）"""
+    """AI がそのまま読める形にする（wait の出力と，画面の「コメントをコピー」で同じものを使う）"""
     n = sum(len(ms) for _, ms in items)
-    L = [f'資料の窓（review.py）から {n} 件のコメントが届いた．資料: {deck}']
+    L = [f'レビュー画面からコメントが {n} 件届きました。資料: {deck}']
     for t, ms in items:
         L.append(f'\n[{t["id"]}] {where(t)}')
         if t.get('quote'):
-            L.append(f'  選んだ文: 「{t["quote"]}」')
+            L.append(f'  選択したテキスト: 「{t["quote"]}」')
         if t.get('path'):
             L.append(f'  要素: {t["path"]}')
         for m in t['messages']:
@@ -92,9 +92,9 @@ def prompt(deck, items):
                 L.append(f'  コメント: {m["text"]}')
             else:
                 L.append(f'  （前の{"コメント" if m["who"] == "user" else "AI の返信"}）{m["text"]}')
-    L.append('\n直したら build し，コメントごとに何をどう直したかを返す（質問には答える．直さないならその理由）:')
+    L.append('\n直したら build し、コメントごとに何をどう直したかを返信する。質問には答え、直さない場合は理由を書く:')
     L.append(f'  python3 {ME} reply {deck} <id> "返信" [--resolve]')
-    L.append(f'返し終えたら，次のコメントを待つ: python3 {ME} wait {deck}')
+    L.append(f'返信し終えたら、次のコメントを待つ: python3 {ME} wait {deck}')
     return '\n'.join(L)
 
 
@@ -122,7 +122,7 @@ def deck_name(deck, name):
     htmls = [p for p in sorted(deck.glob('*.html')) if not p.name.endswith('.src.html')]
     if len(srcs) == 0 and len(htmls) == 1:
         return htmls[0].stem
-    raise SystemExit(f'review: 資料が 1 つに決まらない（{", ".join(p.name for p in srcs or htmls) or "無い"}）．--name で指定する')
+    raise SystemExit(f'review: 資料が 1 つに決まりません（{", ".join(p.name for p in srcs or htmls) or "なし"}）。--name で指定してください')
 
 
 def make_handler(deck, name):
@@ -234,7 +234,7 @@ def make_handler(deck, name):
                     t = find(data, q['id'])
                     m = t['messages'][q['msg']]
                     if m.get('status') != 'draft':
-                        return self.send(409, '送信済みは直せない')
+                        return self.send(409, '送信済みのコメントは編集できません')
                     if q.get('text'):
                         m['text'] = q['text']
                     else:
@@ -276,12 +276,12 @@ def serve(deck, name, port):
     srv.daemon_threads = True
     info = {'port': srv.server_address[1], 'pid': os.getpid(), 'name': name, 'started': now()}
     (rdir(deck) / 'server.json').write_text(json.dumps(info))
-    print(f'review: http://127.0.0.1:{info["port"]}/ で {deck / (name + ".html")} を出している', flush=True)
+    print(f'review: http://127.0.0.1:{info["port"]}/ で {deck / (name + ".html")} を表示しています', flush=True)
     srv.serve_forever()
 
 
 def open_window(url, deck):
-    """アドレスバーの無い専用の窓（Chrome の --app）．Chrome が無ければ既定のブラウザ"""
+    """アドレスバーの無い専用のウィンドウ（Chrome の --app）．Chrome が無ければ既定のブラウザ"""
     try:
         chrome = subprocess.run([sys.executable, str(TOOLS / 'doctor.py'), '--chrome', str(deck)], capture_output=True, text=True).stdout.strip()
     except Exception:
@@ -298,7 +298,7 @@ def cmd_open(a):
     deck = Path(a.deck).resolve()
     name = deck_name(deck, a.name)
     if not (deck / f'{name}.html').is_file():
-        raise SystemExit(f'review: {name}.html が無い．先に build する')
+        raise SystemExit(f'review: {name}.html がありません。先に build してください')
     info = server_info(deck)
     if not info:
         log = open(rdir(deck) / 'server.log', 'a')
@@ -310,18 +310,18 @@ def cmd_open(a):
             if info:
                 break
         if not info:
-            raise SystemExit(f'review: サーバーが立たなかった（{rdir(deck) / "server.log"} を見る）')
+            raise SystemExit(f'review: サーバーを起動できませんでした。{rdir(deck) / "server.log"} を確認してください')
     url = f'http://127.0.0.1:{info["port"]}/deck/{urllib.request.quote(name)}.html'
     if not a.no_window:
         open_window(url, deck)
-    print(f'review: 窓 {url}（資料 {name}.html）')
+    print(f'review: レビュー画面 {url}（資料 {name}.html）')
     print(f'  コメントを待つ: python3 {ME} wait {deck}')
 
 
 def cmd_wait(a):
     deck = Path(a.deck).resolve()
     if not server_info(deck):
-        print(f'review: 窓のサーバーが動いていない（python3 {ME} open {deck} で開く）', file=sys.stderr)
+        print(f'review: レビュー画面のサーバーが動いていません。python3 {ME} open {deck} で開いてください', file=sys.stderr)
     t0 = time.time()
     while True:
         text = deliver(deck)
@@ -329,7 +329,7 @@ def cmd_wait(a):
             print(text)
             return 0
         if a.timeout and time.time() - t0 > a.timeout:
-            print(f'review: {a.timeout} 秒待ったが，コメントはまだ届いていない．もう一度 wait する: python3 {ME} wait {deck}')
+            print(f'review: {a.timeout} 秒待ちましたが、コメントはまだ届いていません。もう一度 wait する: python3 {ME} wait {deck}')
             return 2
         time.sleep(1)
 
@@ -341,7 +341,7 @@ def cmd_reply(a):
         t['messages'].append({'who': 'ai', 'text': a.text, 'at': now()})
         if a.resolve:
             t['state'] = 'resolved'
-    print(f'review: {a.id} に返信した' + ('（解決にした）' if a.resolve else ''))
+    print(f'review: {a.id} に返信しました' + ('（解決済みにしました）' if a.resolve else ''))
 
 
 def cmd_list(a):
@@ -349,11 +349,11 @@ def cmd_list(a):
     with store(deck, write=False) as data:
         ts = [t for t in data['threads'] if a.all or t['state'] == 'open']
         if not ts:
-            print('review: コメントは無い')
+            print('review: コメントはありません')
         for t in ts:
-            print(f'[{t["id"]}] {where(t)}（{"解決" if t["state"] == "resolved" else "開いている"}）' + (f' 「{t["quote"]}」' if t.get('quote') else ''))
+            print(f'[{t["id"]}] {where(t)}（{"解決済み" if t["state"] == "resolved" else "未解決"}）' + (f' 「{t["quote"]}」' if t.get('quote') else ''))
             for m in t['messages']:
-                tag = 'AI' if m['who'] == 'ai' else {'draft': '下書き', 'sent': '送信', 'delivered': '渡した'}.get(m.get('status'), '')
+                tag = 'AI' if m['who'] == 'ai' else {'draft': '下書き', 'sent': '送信済み', 'delivered': 'AI に渡した'}.get(m.get('status'), '')
                 print(f'   {tag}: {m["text"]}')
 
 
@@ -361,17 +361,17 @@ def cmd_stop(a):
     deck = Path(a.deck).resolve()
     info = server_info(deck)
     if not info:
-        print('review: サーバーは動いていない')
+        print('review: サーバーは動いていません')
         return
     try:
         os.kill(info['pid'], 15)
-        print('review: サーバーを止めた')
+        print('review: サーバーを止めました')
     except OSError as e:
-        print(f'review: 止められなかった（{e}）')
+        print(f'review: サーバーを止められませんでした（{e}）')
 
 
 def main():
-    ap = argparse.ArgumentParser(description='資料の窓でコメントを付け，AI に送る')
+    ap = argparse.ArgumentParser(description='レビュー画面で資料にコメントを付け、AI に送る')
     sp = ap.add_subparsers(dest='cmd', required=True)
     p = sp.add_parser('open'); p.add_argument('deck'); p.add_argument('--name'); p.add_argument('--port', type=int, default=0); p.add_argument('--no-window', action='store_true')
     p = sp.add_parser('serve'); p.add_argument('deck'); p.add_argument('--name'); p.add_argument('--port', type=int, default=0)
