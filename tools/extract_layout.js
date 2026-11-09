@@ -75,7 +75,8 @@
     }
     if (sl.classList.contains('cover')) {                                    // 表紙（マスターの表紙のレイアウトに置く）．HTML と同じ位置で改行する
       const tx = q => { const e = sl.querySelector(q); return e ? lines(e).map(L => L.runs.map(r => r.t || '').join('')) : []; };
-      slides.push({ cover: true, title: tx('.cover-title'), sub: tx('.cover-sub'), scale: sc, items: [], over: 0 });
+      const rc = q => { const e = sl.querySelector(q); return e ? rel(e.getBoundingClientRect()) : null; };   // 資料の CSS で動かした位置もパワポに渡す
+      slides.push({ cover: true, title: tx('.cover-title'), sub: tx('.cover-sub'), titleRect: rc('.cover-title'), subRect: rc('.cover-sub'), scale: sc, items: [], over: 0 });
       return;
     }
     const para = (el, kind, level, skip) => {

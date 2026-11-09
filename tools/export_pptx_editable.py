@@ -346,6 +346,9 @@ def main():
                 for ph in slide.placeholders:
                     t = ph._element.find('.//' + qn('p:ph')).get('type', 'body')
                     ph.text = '\v'.join(sd['title'] if t in ('ctrTitle', 'title') else sd['sub'])   # \v は段落の中の改行
+                    r = sd.get('titleRect') if t in ('ctrTitle', 'title') else sd.get('subRect')
+                    if r and abs(ph.top - r['y'] * PX) > 3 * PX:   # 資料の CSS で位置を変えた表紙・扉は，HTML の位置に置く
+                        ph.left, ph.top, ph.width, ph.height = (int(v * PX) for v in (r['x'], r['y'], r['w'], r['h']))
                 add_footer(slide, R, R['cover_layout'], today)
                 continue
             slide = prs.slides.add_slide(layout)
