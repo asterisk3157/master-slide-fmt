@@ -45,7 +45,10 @@ def rpr(el, pt, color='000000', bold=False, italic=False, script=None, latin=Non
     etree.SubElement(el, A('latin')).set('typeface', latin or F['latin']); etree.SubElement(el, A('ea')).set('typeface', ea or F['ea']); etree.SubElement(el, A('cs')).set('typeface', latin or F['latin'])
     return el
 
-def add_run(p, text, pt, **kw):
+MONO = 'Consolas'   # HTML で等幅の字（コード）は，パワポではこの書体にする
+
+def add_run(p, text, pt, mono=False, **kw):
+    if mono: kw.setdefault('latin', MONO)
     r = etree.SubElement(p, A('r')); rpr(etree.SubElement(r, A('rPr')), pt, **kw); etree.SubElement(r, A('t')).text = text
 
 class Ctx:
@@ -93,7 +96,7 @@ def fill_paragraph(body, para, ctx, bullet=None, mar=0, indent=0, spc_before=0, 
                 r = etree.SubElement(p, A('r')); rp = rpr(etree.SubElement(r, A('rPr')), rpt)
                 rp.set('spc', str(int(round((run['gap'] * 0.75 - 0.278 * rpt) * 100)))); etree.SubElement(r, A('t')).text = '\u00a0'; continue
             if 't' in run:                                         # 文字（テキストで書いた式もここ．斜体・上付き・下付きをそのまま写す）
-                add_run(p, run['t'], rpt, color=run['color'], bold=run['bold'] or bold, italic=run.get('italic', False), script=run.get('script')); continue
+                add_run(p, run['t'], rpt, color=run['color'], bold=run['bold'] or bold, italic=run.get('italic', False), script=run.get('script'), mono=run.get('mono', False)); continue
             ctx.pending.append((run, rpt))                         # 残った式は画像（かプラグイン）を重ね，文の側は空白で場所を空ける
             r = etree.SubElement(p, A('r')); rp = rpr(etree.SubElement(r, A('rPr')), rpt)
             rp.set('spc', str(int(round((run['rect']['w'] * 0.75 - 0.278 * rpt) * 100)))); etree.SubElement(r, A('t')).text = ' '
@@ -192,7 +195,11 @@ def put_box(ctx, it):
     r = it['rect']
     sh = ctx.slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Emu(int(r['x'] * PX)), Emu(int(r['y'] * PX)), Emu(int(r['w'] * PX)), Emu(int(r['h'] * PX)))
     c = ctx.R['colors']['box_border']
-    sh.fill.background(); sh.line.color.rgb = RGBColor.from_string(c); sh.line.width = Emu(int(2 * PX)); sh.shadow.inherit = False
+    if it.get('hasFill'):                                      # 背景色のある枠（コードの枠など）は，その色で塗り，枠の色も HTML に合わせる
+        sh.fill.solid(); sh.fill.fore_color.rgb = RGBColor.from_string(it['fill']); c = it.get('borderColor') or c
+    else:
+        sh.fill.background()
+    sh.line.color.rgb = RGBColor.from_string(c); sh.line.width = Emu(int(2 * PX)); sh.shadow.inherit = False
     pad = it['padL']
     body = textbox(ctx, r['x'] + pad, top_of(it), r['w'] - pad, r['h'])          # 右の余白ぶん広げ，字幅の違いで折り返さないようにする
     fill_paragraph(body, it, ctx, box_x=r['x'] + pad)
