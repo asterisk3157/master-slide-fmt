@@ -36,8 +36,9 @@ def master_json(deck, master_path):
 SECTION = re.compile(r'(<section\b[^>]*\bclass="([^"]*)"[^>]*>)(.*?)(</section>)', re.S)
 FOOT = re.compile(r'\s*<div class="(?:foot|deco|cover-line)"[^>]*>.*?</div>', re.S)
 
-def today_text(fmt):
-    d = datetime.date.today()
+def today_text(fmt, value=None):
+    """脚注の日付．value（footer.date_value，例 2026-11-09）があればその日に固定する"""
+    d = datetime.date.fromisoformat(value) if value else datetime.date.today()
     return {'ymd': f'{d.year}/{d.month}/{d.day}', 'iso': d.isoformat()}.get(fmt, f'{d:%B} {d.day}, {d.year}')
 
 def structure(s, th, name):
@@ -47,7 +48,7 @@ def structure(s, th, name):
     def foot():
         n[0] += 1
         out = []
-        if ft.get('date') != 'none': out.append('<span class="date">%s</span>' % today_text(ft.get('date_format')))
+        if ft.get('date') != 'none': out.append('<span class="date">%s</span>' % today_text(ft.get('date_format'), ft.get('date_value')))
         if ft.get('text'): out.append('<span class="ftr">%s</span>' % html.escape(ft['text']))
         if ft.get('number', True): out.append('<span class="num">%d</span>' % n[0])
         return '<div class="foot">%s</div>' % ''.join(out)

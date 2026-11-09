@@ -254,7 +254,7 @@ def foot_body(typ, R, today, rpr_xml):
     if typ == 'ftr': return '<a:r>%s<a:t>%s</a:t></a:r>' % (rpr_xml, escape(ft['text']))
     if typ == 'sldNum': return '<a:fld id="{EAF98E47-F0C4-4887-A05D-5E9F7E355DE0}" type="slidenum">%s<a:t>‹#›</a:t></a:fld>' % rpr_xml
     kind, lang = DATE_FIELD.get(ft.get('date_format', 'en-long'), (None, None))
-    if ft.get('date') == 'field' and kind:
+    if ft.get('date') == 'field' and kind and not ft.get('date_value'):
         return '<a:fld id="{3AFDAFF1-9B2A-45F7-9168-4939F684F6F7}" type="%s">%s<a:t>%s</a:t></a:fld>' % (kind, rpr_xml.replace('lang="ja-JP"', 'lang="%s"' % lang), today)
     return '<a:r>%s<a:t>%s</a:t></a:r>' % (rpr_xml, today)
 
@@ -318,7 +318,8 @@ def main():
         prs.part.drop_rel(s.rId); prs.slides._sldIdLst.remove(s)
     layout = next(l for l in prs.slide_layouts if l.name == R['layout'])
     cover_layout = next((l for l in prs.slide_layouts if l.name == R['cover_layout']), None) if R['cover_layout'] else None
-    d = datetime.date.today()
+    dv = R['footer'].get('date_value')                         # footer.date_value があれば，その日に固定する
+    d = datetime.date.fromisoformat(dv) if dv else datetime.date.today()
     today = {'ymd': f'{d.year}/{d.month}/{d.day}', 'iso': d.isoformat()}.get(R['footer'].get('date_format'), f'{d:%B} {d.day}, {d.year}')
     stats = {'plugin': 0, 'office': 0, 'image': [], 'slide': 0, 'custom': 0, 'sizes': set(), 'over': []}
     with sync_playwright() as pw:

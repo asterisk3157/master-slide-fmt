@@ -13,7 +13,9 @@
   const today = fmt === 'ymd' ? `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`
               : fmt === 'iso' ? d.toISOString().slice(0, 10)
               : d.toLocaleDateString('en-US', { month: 'long' }) + ' ' + d.getDate() + ', ' + d.getFullYear();
-  document.querySelectorAll('section.slide > .foot .date').forEach(e => { e.textContent = today; });
+  // field（開いた日）のときだけ書き換える．fixed・date_value のときは build が書いた日付のまま
+  if (DATA.footer.date === 'field' && !DATA.footer.date_value)
+    document.querySelectorAll('section.slide > .foot .date').forEach(e => { e.textContent = today; });
 
   // はみ出したら図を小さくする．文字は縮めない．それでも入らない枚は data-over を付けて中身を縮める
   const slides = [...document.querySelectorAll('section.slide')];

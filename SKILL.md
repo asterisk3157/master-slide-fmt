@@ -153,7 +153,7 @@ Artifact（claude.ai のページ）とコメント（ArtifactComments）を使�
 | `sizes_pt.lead` / `.body` / `.sub` / `.small` / `.strict` | auto（マスターの段 1〜3）/ 12 / true | 文字の大きさの段（pt）。strict は段の外の大きさを知らせる |
 | `bullets.lead` / `.body` / `.sub` | auto（マスターの記号） | 箇条書きの記号（例: ◆ – •）。`""` で記号なし |
 | `colors.text` / `.good` / `.bad` / `.table_head` / `.table_border` / `.box_border` / `.page_bg` | auto / 0070C0 / FF0000 / D9D9D9 / 000000 / 000000 / 2F3B52 | 文字・強調・表・枠・ページの背景（スライドの外）の色 |
-| `footer.text` / `.date` / `.date_format` / `.number` | auto（マスターのフッターの文字）/ field / en-long / true | 脚注の名前，日付（field = 開いた日に変わる / fixed / none），書式（en-long = October 3, 2026 / ymd = 2026/10/3 / iso），ページ番号 |
+| `footer.text` / `.date` / `.date_value` / `.date_format` / `.number` | auto（マスターのフッターの文字）/ field / — / en-long / true | 脚注の名前，日付（field = 開いた日に変わる / fixed = build した日 / none），日付を固定する日（例 `"2026-11-09"`．書けば date に関係なくその日），書式（en-long = October 3, 2026 / ymd = 2026/10/3 / iso），ページ番号 |
 | `math.font` / `.preamble` / `.pptx` / `.plugin` | sans / "" / office / "" | 式の書体（sans = Arial 風 / serif），LaTeX のプリアンブルに足す行，パワポの絵の式（office = PowerPoint の数式。pandoc で変換 / image = 画像），パワポで絵の式を置く Python のファイル（プロファイルのフォルダからの相対でよい。`add(slide, tex, size_pt, color, (x, y, w, h))` で置き，置けなければ例外。無ければ画像） |
 | `chrome` | 自動で探す | Chrome / Chromium の場所 |
 
