@@ -58,7 +58,7 @@
       return;
     }
     const ex = document.getElementById('export');
-    const exb = ex && ex.offsetParent !== null ? ex.getBoundingClientRect().bottom : 0;
+    const exb = ex && getComputedStyle(ex).display !== 'none' ? ex.getBoundingClientRect().bottom : 0;   // 右上の書き出しボタンの下から（fixed なので offsetParent では見分けられない）
     const top = Math.max(parseFloat(getComputedStyle(document.body).paddingTop) || 0, exb) + 10;
     const bottom = nav.offsetHeight + 24;
     const s = Math.min((vw - 24) / DATA.W, (vh - top - bottom) / DATA.H);
