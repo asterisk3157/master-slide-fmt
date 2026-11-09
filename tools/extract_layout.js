@@ -23,6 +23,7 @@
           const ss = n.parentElement.closest('sub, sup');                       // 上付き・下付きは，元の大きさ + 上下の指定でパワポに渡す
           const st = { color: hex(cs.color), bold: parseInt(cs.fontWeight) >= 600, italic: cs.fontStyle === 'italic',
                        mono: /monospace|Consolas|Menlo|Courier/i.test(cs.fontFamily),   // コードの等幅の字（パワポでは等幅の書体にする）
+                       jp: /ゴシック|Gothic|Hiragino|Meiryo|明朝|Mincho/i.test(cs.fontFamily.split(',')[0]),   // 和文の書体を先頭に指定した字（○×△ など．パワポでも和文の書体にする）
                        script: ss ? (ss.tagName === 'SUB' ? '_' : '^') : null, fs: parseFloat(getComputedStyle(ss ? ss.parentElement : n.parentElement).fontSize) };
           const s = n.textContent;
           for (let i = 0; i < s.length; i++) {
@@ -64,8 +65,8 @@
           prevRight = Math.max(prevRight === null ? f.right : prevRight, f.right);
           const last = runs[runs.length - 1];
           if (f.math !== undefined) runs.push({ math: f.math, id: f.id, rect: f.rect, color: f.color, fs: f.fs, eq: f.eq });
-          else if (last && last.t !== undefined && last.color === f.color && last.bold === f.bold && last.italic === f.italic && last.script === f.script && last.fs === f.fs && last.mono === f.mono) last.t += f.t;
-          else runs.push({ t: f.t, color: f.color, bold: f.bold, italic: f.italic, script: f.script, fs: f.fs, mono: f.mono });
+          else if (last && last.t !== undefined && last.color === f.color && last.bold === f.bold && last.italic === f.italic && last.script === f.script && last.fs === f.fs && last.mono === f.mono && last.jp === f.jp) last.t += f.t;
+          else runs.push({ t: f.t, color: f.color, bold: f.bold, italic: f.italic, script: f.script, fs: f.fs, mono: f.mono, jp: f.jp });
         }
         if (runs.length && runs[0].t !== undefined) runs[0].t = runs[0].t.replace(/^ +/, '');
         if (runs.length && runs[runs.length - 1].t !== undefined) runs[runs.length - 1].t = runs[runs.length - 1].t.replace(/ +$/, '');

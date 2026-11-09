@@ -47,8 +47,9 @@ def rpr(el, pt, color='000000', bold=False, italic=False, script=None, latin=Non
 
 MONO = 'Consolas'   # HTML で等幅の字（コード）は，パワポではこの書体にする
 
-def add_run(p, text, pt, mono=False, **kw):
+def add_run(p, text, pt, mono=False, jp=False, **kw):
     if mono: kw.setdefault('latin', MONO)
+    if jp: kw.setdefault('latin', F['ea'])                     # 和文の書体を指定した字は，英字の側も和文の書体にする（記号の書体をそろえる）
     r = etree.SubElement(p, A('r')); rpr(etree.SubElement(r, A('rPr')), pt, **kw); etree.SubElement(r, A('t')).text = text
 
 class Ctx:
@@ -96,7 +97,7 @@ def fill_paragraph(body, para, ctx, bullet=None, mar=0, indent=0, spc_before=0, 
                 r = etree.SubElement(p, A('r')); rp = rpr(etree.SubElement(r, A('rPr')), rpt)
                 rp.set('spc', str(int(round((run['gap'] * 0.75 - 0.278 * rpt) * 100)))); etree.SubElement(r, A('t')).text = '\u00a0'; continue
             if 't' in run:                                         # 文字（テキストで書いた式もここ．斜体・上付き・下付きをそのまま写す）
-                add_run(p, run['t'], rpt, color=run['color'], bold=run['bold'] or bold, italic=run.get('italic', False), script=run.get('script'), mono=run.get('mono', False)); continue
+                add_run(p, run['t'], rpt, color=run['color'], bold=run['bold'] or bold, italic=run.get('italic', False), script=run.get('script'), mono=run.get('mono', False), jp=run.get('jp', False)); continue
             ctx.pending.append((run, rpt))                         # 残った式は画像（かプラグイン）を重ね，文の側は空白で場所を空ける
             r = etree.SubElement(p, A('r')); rp = rpr(etree.SubElement(r, A('rPr')), rpt)
             rp.set('spc', str(int(round((run['rect']['w'] * 0.75 - 0.278 * rpt) * 100)))); etree.SubElement(r, A('t')).text = ' '
