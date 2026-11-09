@@ -16,6 +16,9 @@
     .then(r => r.ok ? r.json() : r.text().then(t => { throw new Error(t); }));
   const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const slides = () => [...document.querySelectorAll('section.slide')];
+  // 資料は 1 枚ずつの表示（runtime.js の window.msfDeck）．いま出ていない枚のピン・塗りは出さず，コメントへ移るときはその枚を開く
+  const shown = sl => !window.msfDeck || window.msfDeck.shown(sl);
+  const goTo = sl => { if (window.msfDeck) window.msfDeck.go(slides().indexOf(sl)); else sl.scrollIntoView({ block: 'center' }); };
   const UI = '.msf-rv';                                  // 重ねた部品（これの上ではコメントの操作をしない）
 
   // ---------- 見た目 ----------
@@ -68,7 +71,7 @@
                        border-radius: 6px; padding: 6px 12px; text-decoration: none; flex: none; }
     .msf-rv-bar a.dl:hover { background: #dbe9ff; }
     .msf-rv-bar a.dl svg { width: 14px; height: 14px; }
-    .msf-rv-toast { position: fixed; z-index: 2147483400; left: 50%; bottom: 18px; transform: translateX(-50%); background: #24292f; color: #fff;
+    .msf-rv-toast { position: fixed; z-index: 2147483400; left: 50%; bottom: 64px; transform: translateX(-50%); background: #24292f; color: #fff;
                     padding: 6px 12px; border-radius: 6px; opacity: 0; transition: opacity .3s; pointer-events: none; }
     .msf-rv-toast.on { opacity: .92; }`;
   document.head.appendChild(css);
@@ -255,6 +258,7 @@
   function openThread(id, keepText, at) {
     const t = threads.find(x => x.id === id);
     if (!t) return;
+    { const a0 = anchorOf(t); if (a0 && !shown(a0.sl)) goTo(a0.sl); }   // 別の枚のコメント: その枚を開いてから出す
     const same = pop && pop.kind === 'thread' && pop.id === id;
     if (pop && !same && !closePop()) return;
     const old = same ? pop.box : null;
@@ -315,7 +319,7 @@
     const used = {};
     visible().forEach(t => {
       const a = anchorOf(t);
-      if (!a) return;
+      if (!a || !shown(a.sl)) return;
       const r = docRect(a.rect);
       const k = Math.round(r.right / 24) + ':' + Math.round(r.top / 24);
       const n = used[k] = (used[k] || 0) + 1;
@@ -333,7 +337,7 @@
     visible().forEach(t => {
       if (!t.quote) return;
       const a = anchorOf(t);
-      if (a && a.range) (t.id === active ? on : all).add(a.range);
+      if (a && a.range && shown(a.sl)) (t.id === active ? on : all).add(a.range);
     });
     CSS.highlights.set('msf-rv', all); CSS.highlights.set('msf-rv-on', on);
   }
@@ -342,6 +346,10 @@
     if (pop && pop.kind === 'thread') { const t = threads.find(x => x.id === pop.id); const a = t && anchorOf(t); if (a && !t.quote) showBox(a.el); }
   }
   addEventListener('resize', relayout);
+  addEventListener('msf-slide', () => {                  // 枚をめくった・一覧にした: 吹き出しを閉じて（書きかけは確かめる），ピンを置き直す
+    closePop();
+    relayout();
+  });
   [600, 1800, 4500].forEach(ms => setTimeout(relayout, ms));    // 図の縮小（runtime.js）が済んでから置き直す
 
   // ---------- 下のツールバー ----------
@@ -387,7 +395,7 @@
     const t = vs[i];
     if (!closePop()) return;
     const a = anchorOf(t);
-    if (a) a.el.scrollIntoView({ block: 'center' });
+    if (a) { if (window.msfDeck) goTo(a.sl); else a.el.scrollIntoView({ block: 'center' }); }
     setTimeout(() => openThread(t.id), 60);
   }
   prev.onclick = () => step(-1); next.onclick = () => step(1);
@@ -403,7 +411,7 @@
     });
   }
   function reloadNow() {
-    const ss = slides(); const sl = ss.find(s => s.getBoundingClientRect().bottom > 40) || ss[0];
+    const ss = slides(); const sl = window.msfDeck ? ss[window.msfDeck.index] : (ss.find(s => s.getBoundingClientRect().bottom > 40) || ss[0]);
     if (sl) {
       const rc = sl.getBoundingClientRect();
       try { sessionStorage.setItem(KEY('pos'), JSON.stringify({ i: ss.indexOf(sl), off: -rc.top / Math.max(1, rc.height), open: pop && pop.kind === 'thread' ? pop.id : null })); } catch (e) {}
@@ -421,7 +429,8 @@
     if (!p) return;
     const sl = slides()[p.i];
     if (!sl) return;
-    const go = () => { const rc = sl.getBoundingClientRect(); scrollBy(0, rc.top + rc.height * (p.off || 0)); };
+    const go = () => { if (window.msfDeck) { if (window.msfDeck.index !== p.i) goTo(sl); return; }
+                       const rc = sl.getBoundingClientRect(); scrollBy(0, rc.top + rc.height * (p.off || 0)); };
     go(); setTimeout(go, 300);
     setTimeout(() => { go(); relayout(); if (p.open) openThread(p.open); toast('スライドを再読み込みしました'); }, 1600);
   }

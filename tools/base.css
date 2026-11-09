@@ -69,3 +69,24 @@ body.export .slide { margin: 0; box-shadow: none; break-after: page; break-insid
 body.export.nomaster .deco, body.export.nomaster .foot { display: none; }   /* パワポ用: 飾りと脚注はマスターの側にある */
 body > footer { text-align: center; color: #dfe6f0; font-size: 12px; padding: 14px; }
 #top { position: fixed; right: 16px; bottom: 16px; background: #fff; color: #000; border: 1px solid #000; padding: 6px 12px; cursor: pointer; font-size: 12px; }
+/* 1 枚ずつの表示（runtime.js が body に deck を付ける）．マスターの大きさの枠に 1 枚だけ出し，画面に収まるように縮める．
+   書き出し（?export=…）と，スクリプトが動かない表示では，上の縦の並びのまま */
+body.deck { overflow: hidden; height: 100vh; }
+body.deck > header, body.deck > nav, body.deck > footer, body.deck #top { display: none; }
+body.deck:not(.grid) main { position: fixed; left: 0; top: 0; padding: 0; display: grid; transform-origin: 0 0; }
+body.deck:not(.grid) main > .slide { grid-area: 1 / 1; margin: 0; visibility: hidden; }
+body.deck:not(.grid) main > .slide.current { visibility: visible; }
+/* 一覧（全部の枚を小さく並べる）．押すとその枚を 1 枚ずつの表示で開く */
+body.deck.grid { overflow: auto; }
+body.deck.grid main { display: flex; flex-flow: row wrap; justify-content: center; align-content: flex-start; gap: 20px; padding: 60px 16px 80px; }
+body.deck.grid main > .slide { margin: 0; zoom: var(--thumb, 0.25); cursor: pointer; }
+body.deck.grid main > .slide.current { outline: 6px solid #1f6feb; outline-offset: 4px; }
+#deck-nav { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 11; display: flex; align-items: center; gap: 2px;
+            background: rgba(32,33,36,.86); color: #fff; border-radius: 22px; padding: 4px 6px; font: 13px/1 -apple-system, 'Hiragino Sans', 'Segoe UI', sans-serif;
+            user-select: none; white-space: nowrap; }
+#deck-nav button { background: none; border: 0; color: inherit; font: inherit; padding: 7px 12px; border-radius: 16px; cursor: pointer; }
+#deck-nav button:hover:not(:disabled) { background: rgba(255,255,255,.18); }
+#deck-nav button:disabled { opacity: .35; cursor: default; }
+#deck-nav .count { min-width: 4.6em; text-align: center; font-variant-numeric: tabular-nums; }
+#deck-nav .sep { width: 1px; height: 16px; background: rgba(255,255,255,.3); margin: 0 4px; }
+@media print { #deck-nav { display: none; } }
