@@ -45,7 +45,11 @@ def rpr(el, pt, color='000000', bold=False, italic=False, script=None, latin=Non
     etree.SubElement(el, A('latin')).set('typeface', latin or F['latin']); etree.SubElement(el, A('ea')).set('typeface', ea or F['ea']); etree.SubElement(el, A('cs')).set('typeface', latin or F['latin'])
     return el
 
-def add_run(p, text, pt, **kw):
+MONO = 'Consolas'   # HTML で等幅の字（コード）は，パワポではこの書体にする
+
+def add_run(p, text, pt, mono=False, jp=False, **kw):
+    if mono: kw.setdefault('latin', MONO)
+    if jp: kw.setdefault('latin', F['ea'])                     # 和文の書体を指定した字は，英字の側も和文の書体にする（記号の書体をそろえる）
     r = etree.SubElement(p, A('r')); rpr(etree.SubElement(r, A('rPr')), pt, **kw); etree.SubElement(r, A('t')).text = text
 
 class Ctx:
@@ -93,7 +97,7 @@ def fill_paragraph(body, para, ctx, bullet=None, mar=0, indent=0, spc_before=0, 
                 r = etree.SubElement(p, A('r')); rp = rpr(etree.SubElement(r, A('rPr')), rpt)
                 rp.set('spc', str(int(round((run['gap'] * 0.75 - 0.278 * rpt) * 100)))); etree.SubElement(r, A('t')).text = '\u00a0'; continue
             if 't' in run:                                         # 文字（テキストで書いた式もここ．斜体・上付き・下付きをそのまま写す）
-                add_run(p, run['t'], rpt, color=run['color'], bold=run['bold'] or bold, italic=run.get('italic', False), script=run.get('script')); continue
+                add_run(p, run['t'], rpt, color=run['color'], bold=run['bold'] or bold, italic=run.get('italic', False), script=run.get('script'), mono=run.get('mono', False), jp=run.get('jp', False)); continue
             ctx.pending.append((run, rpt))                         # 残った式は画像（かプラグイン）を重ね，文の側は空白で場所を空ける
             r = etree.SubElement(p, A('r')); rp = rpr(etree.SubElement(r, A('rPr')), rpt)
             rp.set('spc', str(int(round((run['rect']['w'] * 0.75 - 0.278 * rpt) * 100)))); etree.SubElement(r, A('t')).text = ' '
@@ -192,7 +196,11 @@ def put_box(ctx, it):
     r = it['rect']
     sh = ctx.slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Emu(int(r['x'] * PX)), Emu(int(r['y'] * PX)), Emu(int(r['w'] * PX)), Emu(int(r['h'] * PX)))
     c = ctx.R['colors']['box_border']
-    sh.fill.background(); sh.line.color.rgb = RGBColor.from_string(c); sh.line.width = Emu(int(2 * PX)); sh.shadow.inherit = False
+    if it.get('hasFill'):                                      # 背景色のある枠（コードの枠など）は，その色で塗り，枠の色も HTML に合わせる
+        sh.fill.solid(); sh.fill.fore_color.rgb = RGBColor.from_string(it['fill']); c = it.get('borderColor') or c
+    else:
+        sh.fill.background()
+    sh.line.color.rgb = RGBColor.from_string(c); sh.line.width = Emu(int(2 * PX)); sh.shadow.inherit = False
     pad = it['padL']
     body = textbox(ctx, r['x'] + pad, top_of(it), r['w'] - pad, r['h'])          # 右の余白ぶん広げ，字幅の違いで折り返さないようにする
     fill_paragraph(body, it, ctx, box_x=r['x'] + pad)
@@ -254,7 +262,7 @@ def foot_body(typ, R, today, rpr_xml):
     if typ == 'ftr': return '<a:r>%s<a:t>%s</a:t></a:r>' % (rpr_xml, escape(ft['text']))
     if typ == 'sldNum': return '<a:fld id="{EAF98E47-F0C4-4887-A05D-5E9F7E355DE0}" type="slidenum">%s<a:t>‹#›</a:t></a:fld>' % rpr_xml
     kind, lang = DATE_FIELD.get(ft.get('date_format', 'en-long'), (None, None))
-    if ft.get('date') == 'field' and kind:
+    if ft.get('date') == 'field' and kind and not ft.get('date_value'):
         return '<a:fld id="{3AFDAFF1-9B2A-45F7-9168-4939F684F6F7}" type="%s">%s<a:t>%s</a:t></a:fld>' % (kind, rpr_xml.replace('lang="ja-JP"', 'lang="%s"' % lang), today)
     return '<a:r>%s<a:t>%s</a:t></a:r>' % (rpr_xml, today)
 
@@ -318,7 +326,8 @@ def main():
         prs.part.drop_rel(s.rId); prs.slides._sldIdLst.remove(s)
     layout = next(l for l in prs.slide_layouts if l.name == R['layout'])
     cover_layout = next((l for l in prs.slide_layouts if l.name == R['cover_layout']), None) if R['cover_layout'] else None
-    d = datetime.date.today()
+    dv = R['footer'].get('date_value')                         # footer.date_value があれば，その日に固定する
+    d = datetime.date.fromisoformat(dv) if dv else datetime.date.today()
     today = {'ymd': f'{d.year}/{d.month}/{d.day}', 'iso': d.isoformat()}.get(R['footer'].get('date_format'), f'{d:%B} {d.day}, {d.year}')
     stats = {'plugin': 0, 'office': 0, 'image': [], 'slide': 0, 'custom': 0, 'sizes': set(), 'over': []}
     with sync_playwright() as pw:
@@ -337,6 +346,9 @@ def main():
                 for ph in slide.placeholders:
                     t = ph._element.find('.//' + qn('p:ph')).get('type', 'body')
                     ph.text = '\v'.join(sd['title'] if t in ('ctrTitle', 'title') else sd['sub'])   # \v は段落の中の改行
+                    r = sd.get('titleRect') if t in ('ctrTitle', 'title') else sd.get('subRect')
+                    if r and abs(ph.top - r['y'] * PX) > 3 * PX:   # 資料の CSS で位置を変えた表紙・扉は，HTML の位置に置く
+                        ph.left, ph.top, ph.width, ph.height = (int(v * PX) for v in (r['x'], r['y'], r['w'], r['h']))
                 add_footer(slide, R, R['cover_layout'], today)
                 continue
             slide = prs.slides.add_slide(layout)
